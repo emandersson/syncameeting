@@ -1,0 +1,35 @@
+{
+  "name": "syncameeting",
+  "version": "0.0.0",
+  "description": "Free tool for synchronizing a meeting without any particular user commitment",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Magnus Andersson",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "async": "^2.6.2",
+    "concat-stream": "^2.0.0",
+    "fibers": "^3.1.1",
+    "formidable": "1.2.x",
+    "ip": "^1.1.5",
+    "minimist": "^1.2.0",
+    "mysql": "^2.16.0",
+    "n": "^2.1.12",
+    "node-zip": "1.1.x",
+    "redis": "^2.8.0",
+    "request": "^2.88.0",
+    "through": "^2.3.8"
+  },
+  "devDependencies": {},
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/"
+  },
+  "engines": {
+    "node": "11.x",
+    "npm": ""
+  }
+}
