@@ -1,42 +1,12 @@
+"use strict"
+
+var getItem=function(name) {    var tmp=localStorage.getItem(name);   if(tmp!==null) tmp=JSON.parse(tmp);  return tmp;   }
+var setItem=function(name,value) {  localStorage[name]=JSON.stringify(value); }
+var getItemS=function(name) {    var tmp=sessionStorage.getItem(name);    if(tmp!==null) tmp=JSON.parse(tmp);   return tmp;   }
+var setItemS=function(name,value) {  sessionStorage[name]=JSON.stringify(value); }
 
 
-reload=function(){ confirm('reload'); window.location.reload(); }
-getItem=function(name) {    var tmp=localStorage.getItem(name);   if(tmp!==null) tmp=JSON.parse(tmp);  return tmp;   }
-setItem=function(name,value) {  localStorage[name]=JSON.stringify(value); }
-getItemS=function(name) {    var tmp=sessionStorage.getItem(name);    if(tmp!==null) tmp=JSON.parse(tmp);   return tmp;   }
-setItemS=function(name,value) {  sessionStorage[name]=JSON.stringify(value); }
-
-
-myDump=function(o){
-  alert(print_r(o));
-}
-
-isTouchDevice=function() {  
-  try {    document.createEvent("TouchEvent");    return true;   }
-  catch (e) {   return false;   }  
-}
-
-getScrollHeight=function(){  if($.browser.msie)  h=document.getElementsByTagName('body')[0].scrollHeight;   else h=document.body.parentNode.scrollHeight;   return h;  }
-
-getViewPortSize=function(){
-  
-    // the more standards compliant browsers (mozilla/netscape/opera/IE7) use window.innerWidth and window.innerHeight
-  if (typeof window.innerWidth != 'undefined') {  viewportwidth = window.innerWidth;  viewportheight = window.innerHeight; }
-
-    // IE6 in standards compliant mode (i.e. with a valid doctype as the first line in the document)
-  else if (typeof document.documentElement != 'undefined' && typeof document.documentElement.clientWidth != 'undefined' && document.documentElement.clientWidth != 0){
-    viewportwidth = document.documentElement.clientWidth; viewportheight = document.documentElement.clientHeight;  }
-
-    // older versions of IE
-  else{  viewportwidth = document.getElementsByTagName('body')[0].clientWidth;   viewportheight = document.getElementsByTagName('body')[0].clientHeight;}
-  var siz={w:viewportwidth,h:viewportheight};
-  
-  //confirm('Your viewport width is '+viewportwidth+'x'+viewportheight);
-  return siz;
-}
-
-
-getBrowser=function() {
+var getBrowser=function() {
     var ua=navigator.userAgent.toLowerCase();
 
     var match = /(chrome)[ \/]([\w.]+)/.exec( ua ) ||
@@ -51,7 +21,7 @@ getBrowser=function() {
     
     return {brand:brand,version:version};
 };
-detectIE=function() {
+var detectIE=function() {
     var ua = window.navigator.userAgent;
 
     var msie = ua.indexOf('MSIE ');
@@ -78,11 +48,21 @@ detectIE=function() {
 }
 
 
-$.fn.push = function(selector) {
+//$.fn.push = function(selector) {
+    //Array.prototype.push.apply(this, $.makeArray($(selector)));
+    //return this;
+//};
+
+$.fn.pushOne = function(selector){
     Array.prototype.push.apply(this, $.makeArray($(selector)));
     return this;
 };
-
+$.fn.push = function(){
+  for(var i=0; i<arguments.length; i++){
+    this.pushOne(arguments[i]);
+  }
+  return this;
+}
 
 
 
@@ -90,7 +70,7 @@ $.fn.push = function(selector) {
  * autocompleteFieldExtend
  *******************************************************************************************************************/
 
-autocompleteFieldExtend=function($el,storeID,func){
+var autocompleteFieldExtend=function($el,storeID,func){
 "use strict"
   var createMenu=function(){ 
     var wid=$el.width(), hei=32;
@@ -224,11 +204,11 @@ Node.prototype.css=function(styles, boChildren=false){
     this.childNodes.forEach(function(elA){ Object.assign(elA.style, styles);  });
   return this;
 }
-createTextNode=function(str){ return document.createTextNode(str); }
-createElement=function(str){ return document.createElement(str); }
-createFragment=function(str){ return document.createDocumentFragment(); }
+var createTextNode=function(str){ return document.createTextNode(str); }
+var createElement=function(str){ return document.createElement(str); }
+var createFragment=function(str){ return document.createDocumentFragment(); }
 
-function isVisible(el) {
+var isVisible=function(el) {
     return !!( el.offsetWidth || el.offsetHeight || el.getClientRects().length );
 }
 
@@ -236,9 +216,9 @@ function isVisible(el) {
 /*******************************************************************************************************************
  * popupHover: popup a elBubble when you hover over elArea
  *******************************************************************************************************************/
-function popupHover(elArea,elBubble){
+var popupHover=function(elArea,elBubble){
   elBubble.css({position:'absolute', 'box-sizing':'border-box', margin:'0px'}); //
-  function setBubblePos(e){
+  var setBubblePos=function(e){
     var xClear=6, yClear=6;
     var x = e.pageX, y = e.pageY;
 
@@ -304,12 +284,12 @@ function popupHover(elArea,elBubble){
 }
 
   // Wrappers of popupHover
-function popupHoverM(elArea,elBubble){
+var popupHoverM=function(elArea,elBubble){
   elBubble.css({'z-index':9005,'text-align':'left',padding:'0.4em'}); 
   popupHover(elArea,elBubble);    
   return elArea;
 }
-function popupHoverJQ($area,$bubble){
+var popupHoverJQ=function($area,$bubble){
   $bubble.css({'z-index':9005,'text-align':'left',padding:'0.4em'});  
   popupHover($area[0],$bubble[0]);    
   return $area;

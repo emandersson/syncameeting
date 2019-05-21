@@ -2,110 +2,110 @@
 
 /* images */
 div.floatright, table.floatright {
-	clear: right;
-	float: right;
-	position: relative;
-	margin: 0 0 .5em .5em;
-	border: 0;
+  clear: right;
+  float: right;
+  position: relative;
+  margin: 0 0 .5em .5em;
+  border: 0;
 /*
-	border: .5em solid white;
-	border-width: .5em 0 .8em 1.4em;
+  border: .5em solid white;
+  border-width: .5em 0 .8em 1.4em;
 */
 }
 
 
 div.floatright p { font-style: italic; }
 div.floatleft, table.floatleft {
-	float: left;
-	clear: left;
-	position: relative;
-	margin: 0 .5em .5em 0;
-	border: 0;
+  float: left;
+  clear: left;
+  position: relative;
+  margin: 0 .5em .5em 0;
+  border: 0;
 /*
-	margin: .3em .5em .5em 0;
-	border: .5em solid white;
-	border-width: .5em 1.4em .8em 0;
+  margin: .3em .5em .5em 0;
+  border: .5em solid white;
+  border-width: .5em 1.4em .8em 0;
 */
 }
 div.floatleft p { font-style: italic; }
 /* thumbnails */
 div.thumb {
-	margin-bottom: .5em;
-	border-style: solid;
-	border-color: white;
-	width: auto;
+  margin-bottom: .5em;
+  border-style: solid;
+  border-color: white;
+  width: auto;
 }
 div.noFrame {
-	margin-bottom: .5em;
-	border-style: hidden;
-	width: auto;
+  margin-bottom: .5em;
+  border-style: hidden;
+  width: auto;
 }
 div.noFrameinner {
-	border: 1px hidden #ccc;
-	padding: 3px !important;
-	font-size: 94%;
-	text-align: center;
-	overflow: hidden;
+  border: 1px hidden #ccc;
+  padding: 3px !important;
+  font-size: 94%;
+  text-align: center;
+  overflow: hidden;
 }
 div.thumbinner {
-	border: 1px solid #ccc;
-	padding: 3px !important;
-	background-color: #f9f9f9;
-	font-size: 94%;
-	text-align: center;
-	overflow: hidden;
+  border: 1px solid #ccc;
+  padding: 3px !important;
+  background-color: #f9f9f9;
+  font-size: 94%;
+  text-align: center;
+  overflow: hidden;
 }
 html .thumbimage {
-	border: 1px solid #ccc;
+  border: 1px solid #ccc;
 }
 html .thumbcaption {
-	border: none;
-	text-align: left;
-	line-height: 1.4em;
-	padding: 3px !important;
-	font-size: 94%;
+  border: none;
+  text-align: left;
+  line-height: 1.4em;
+  padding: 3px !important;
+  font-size: 94%;
 }
 html .noFrameCaption {
-	border: none;
-	text-align: center;
-	line-height: 1.4em;
-	padding: 3px !important;
-	font-size: 94%;
+  border: none;
+  text-align: center;
+  line-height: 1.4em;
+  padding: 3px !important;
+  font-size: 94%;
 }
 div.magnify {
-	float: right;
-	border: none !important;
-	background: none !important;
+  float: right;
+  border: none !important;
+  background: none !important;
 }
 div.magnify a, div.magnify img {
-	display: block;
-	border: none !important;
-	background: none !important;
+  display: block;
+  border: none !important;
+  background: none !important;
 }
 div.tright {
-	clear: right;
-	float: right;
-	border-width: .5em 0 .8em 1.4em;
+  clear: right;
+  float: right;
+  border-width: .5em 0 .8em 1.4em;
 }
 div.tleft {
-	float: left;
-	clear: left;
-	margin-right: .5em;
-	border-width: .5em 1.4em .8em 0;
+  float: left;
+  clear: left;
+  margin-right: .5em;
+  border-width: .5em 1.4em .8em 0;
 }
 
 img.thumbborder {
-	border: 1px solid #dddddd;
+  border: 1px solid #dddddd;
 }
 
 /* emulate center */
 .center {
-	width: 100%;
-	text-align: center;
+  width: 100%;
+  text-align: center;
 }
 *.center * {
-	margin-left: auto;
-	margin-right: auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 p {
@@ -126,53 +126,51 @@ dd {
 }
 
 a {
-	text-decoration: none;
-	color: #0000ff;
-	background: none;
+  text-decoration: none;
+  color: #0000ff;
+  background: none;
 }
 a:visited {
-	color: #9a16b6;
+  color: #9a16b6;
 }
 a:active {
-	color: #faa700;
+  color: #faa700;
 }
 a:hover {
-	text-decoration: underline;
+  text-decoration: underline;
 }
 a.stub, :visited.stub{
-	color: #ff2233;
+  color: #ff2233;
 }
 
 
 a.external {
-	background: url(external.png) center right no-repeat;
-	padding-right: 13px;
+  background: url(external.png) center right no-repeat;
+  padding-right: 13px;
 }
 
 a.wikipedia {
-	background: url(wikipedia.png) center right no-repeat;
-	padding-right: 13px;
+  background: url(wikipedia.png) center right no-repeat;
+  padding-right: 13px;
 }
 
-*.hidden {	visibility: hidden;height:10;}
+*.hidden {  visibility: hidden;height:10;}
 
-code {	font-size: 17;
-	font-family:courier;
+code {  font-size: 17;
+  font-family:courier;
 }
 
 pre {
-	font-size: 13;
-	border: solid 1px #3c78b5;
-	padding: 1em;
-	border-style:dashed;
+  font-size: 13;
+  border: solid 1px #3c78b5;
+  padding: 1em;
+  border-style:dashed;
 }
 
 
-body {	font-family:arial, verdana, helvetica;font-size:100%}
+body {font-family:arial, verdana, helvetica;font-size:100%; overscroll-behavior: contain;}
 
-body {
-    -webkit-text-size-adjust: 100%;
-}
+body {-webkit-text-size-adjust: 100%; }
 
 table {border-collapse:collapse;}
 /*table {border-width:0;border-style:solid;border-collapse:collapse;}
@@ -232,17 +230,17 @@ span.message{
   background-color:#F7F700;
   font-size: 13;
  }
-dt	{font-weight:bold;}
+dt  {font-weight:bold;}
 
-del	{background-color:#ffaaaa;}
-ins	{background-color:#aaffaa;text-decoration: none;}
+del {background-color:#ffaaaa;}
+ins {background-color:#aaffaa;text-decoration: none;}
 
 /* Sortable tables */
 table.sortable thead {
-    background-color:#eee;
-    color:#666666;
-    font-weight: bold;
-    cursor: default;
+  background-color:#eee;
+  color:#666666;
+  font-weight: bold;
+  cursor: default;
 }
 
 /*
@@ -296,8 +294,8 @@ iframe { display:block; width:100%; border:none; }
 }
 .popUpDiv {
   position:absolute;
-	background-color:#eeeeee;
-	z-index: 9002; 
+  background-color:#eeeeee;
+  z-index: 9002; 
 }
 
 

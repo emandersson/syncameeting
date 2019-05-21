@@ -1,28 +1,28 @@
 
 
+"use strict"
 
-mesOMake=function(glue){ return function(str){
+var mesOMake=function(glue){ return function(str){
   if(str) this.Str.push(str);
   var str=this.Str.join(glue);  this.res.end(str);
 }}
-mesEOMake=function(glue){ return function(err){
+var mesEOMake=function(glue){ return function(err){
   var error=new MyError(err); console.log(error.stack);
   this.Str.push('E: '+err.syscal+' '+err.code);
   var str=this.Str.join(glue); this.res.end(str);	
 }}
-mesOMakeJSON=function(glue){ return function(str){
+var mesOMakeJSON=function(glue){ return function(str){
   if(str) this.Str.push(str);
-  var str=this.Str.join(glue);  this.res.end(JSON.stringify(str));
+  var str=this.Str.join(glue);  this.res.end(serialize(str));
 }}
-mesEOMakeJSON=function(glue){ return function(err){
+var mesEOMakeJSON=function(glue){ return function(err){
   var error=new MyError(err); console.log(error.stack);
   var tmp=err.syscal||''; this.Str.push('E: '+tmp+' '+err.code);
-  var str=this.Str.join(glue); this.res.end(JSON.stringify(str));	
+  var str=this.Str.join(glue); this.res.end(serialize(str));	
 }}
 
 
 
-"use strict"
 
 
 
@@ -30,7 +30,7 @@ mesEOMakeJSON=function(glue){ return function(err){
  * ReqIndex
  ******************************************************************************/
 app.ReqIndex=function(req, res){
-  this.req=req; this.res=res; this.site=req.site; this.Str=[];
+  this.req=req; this.res=res; this.site=req.site; this.Str=[]; this.pool=mysqlPool;
 }
 app.ReqIndex.prototype.mes=function(str){ this.Str.push(str); }
 app.ReqIndex.prototype.mesO=mesOMake('\n');
@@ -54,10 +54,10 @@ app.ReqIndex.prototype.go=function() {
   
  
   var Str=[];
-  Str.push('<!DOCTYPE html>\n\
-<html xmlns="http://www.w3.org/1999/xhtml"\n\
-      xmlns:og="http://ogp.me/ns#"\n\
-      xmlns:fb="http://www.facebook.com/2008/fbml">');
+  Str.push(`<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:og="http://ogp.me/ns#"
+      xmlns:fb="http://www.facebook.com/2008/fbml">`);
   Str.push('<head>\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>');
 
   if(idSchedule!=null)  Str.push('<meta name="robots" content="noindex">');
@@ -73,13 +73,9 @@ app.ReqIndex.prototype.go=function() {
   Str.push('<link rel="apple-touch-icon-precomposed" href="'+uIcon114+'"/>');
 
 
-
-
-
-  var strTmp='';  //if(boAndroid && boFireFox) {  strTmp=", width=device-width'";}    
+  var strTmp='';  //if(boAndroid && boFireFox) {  strTmp=", width=device-width";}
+  //var strTmp=", width=device-width, user-scalable=no";
   Str.push("<meta name='viewport' id='viewportMy' content='initial-scale=1"+strTmp+"'/>");
-
-
 
 
   var strTitle='Free meeting synchronizer';
@@ -90,46 +86,46 @@ app.ReqIndex.prototype.go=function() {
 
 
 
-  Str.push('\
-  <meta name="description" content="'+strDescription+'"/>\n\
-  <meta name="keywords" content="'+strKeywords+'"/>\n\
-  <link rel="canonical" href="'+uSite+'"/>\n');
+  Str.push(`
+  <meta name="description" content="`+strDescription+`"/>
+  <meta name="keywords" content="`+strKeywords+`"/>
+  <link rel="canonical" href="`+uSite+`"/>`);
 
   
   if(!boDbg) {
-    Str.push('\
-<meta property="og:title" content="'+wwwSite+'"/>\n\
-<meta property="og:type" content="website" />\n\
-<meta property="og:url" content="http://'+wwwSite+'"/>\n\
-<meta property="og:image" content="'+uIcon200+'"/>\n\
-<meta property="og:site_name" content="'+wwwSite+'"/>\n\
-<meta property="fb:admins" content="100002646477985"/>\n\
-<meta property="fb:app_id" content="'+req.rootDomain.fb.id+'"/>\n\
-<meta property="og:description" content="'+strDescription+'"/>\n\
-<meta property="og:locale:alternate" content="sv_se" />\n\
-<meta property="og:locale:alternate" content="en_US" />\n');
+    Str.push(`
+<meta property="og:title" content="`+wwwSite+`"/>
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://`+wwwSite+`"/>
+<meta property="og:image" content="`+uIcon200+`"/>
+<meta property="og:site_name" content="`+wwwSite+`"/>
+<meta property="fb:admins" content="100002646477985"/>
+<meta property="fb:app_id" content="`+req.rootDomain.fb.id+`"/>
+<meta property="og:description" content="`+strDescription+`"/>
+<meta property="og:locale:alternate" content="sv_se" />
+<meta property="og:locale:alternate" content="en_US" />`);
   }
 
 
-  var tmp='\
-<script>\n\
-  window.fbAsyncInit = function() {\n\
-    FB.init({\n\
-      appId      : "'+req.rootDomain.fb.id+'",\n\
-      xfbml      : true,\n\
-      version    : "v3.2"\n\
-    });\n\
-    FB.AppEvents.logPageView(); \n\
-  };\n\
-\n\
-  (function(d, s, id){\n\
-     var js, fjs = d.getElementsByTagName(s)[0];\n\
-     if (d.getElementById(id)) {return;}\n\
-     js = d.createElement(s); js.id = id;\n\
-     js.src = "//connect.facebook.net/en_US/sdk.js";\n\
-     fjs.parentNode.insertBefore(js, fjs);\n\
-   }(document, "script", "facebook-jssdk"));\n\
-</script>\n';
+  var tmp=`
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId      : "`+req.rootDomain.fb.id+`",
+      xfbml      : true,
+      version    : "v3.2"
+    });
+    FB.AppEvents.logPageView();
+  };
+
+  (function(d, s, id){
+     var js, fjs = d.getElementsByTagName(s)[0];
+     if (d.getElementById(id)) {return;}
+     js = d.createElement(s); js.id = id;
+     js.src = "//connect.facebook.net/en_US/sdk.js";
+     fjs.parentNode.insertBefore(js, fjs);
+   }(document, "script", "facebook-jssdk"));
+</script>`;
   Str.push(tmp);
 
 
@@ -160,15 +156,15 @@ app.ReqIndex.prototype.go=function() {
 
   var strTracker, tmpID=site.googleAnalyticsTrackingID||null;
   if(boDbg||!tmpID){strTracker="<script> ga=function(){};</script>";}else{ 
-  strTracker="\n\
-<script type=\"text/javascript\">\n\
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){\n\
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),\n\
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)\n\
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');\n\
-  ga('create', '"+tmpID+"', 'auto');\n\
-  ga('send', 'pageview');\n\
-</script>\n";
+  strTracker=`
+<script type="text/javascript">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+  ga('create', '`+tmpID+`', 'auto');
+  ga('send', 'pageview');
+</script>`;
   }
   Str.push(strTracker);
 
@@ -178,17 +174,19 @@ app.ReqIndex.prototype.go=function() {
 
   Str.push("<title>"+strTitle+"</title>\n<h1>"+strH1+"</h1>\n"+strSummary);
 
-  Str.push("\n<script type=\"text/javascript\" language=\"JavaScript\" charset=\"UTF-8\">\n\
-  \n\
-boTLS="+JSON.stringify(site.boTLS)+";\n\
-idSchedule="+JSON.stringify(idSchedule)+";\n\
-codeSchedule="+JSON.stringify(codeSchedule)+";\n\
-  </script>\n\
-  </body>\n\
-  </html>");
+  Str.push(`\n<script type="text/javascript" language="JavaScript" charset="UTF-8">
+
+boTLS=`+JSON.stringify(site.boTLS)+`;
+idSchedule=`+JSON.stringify(idSchedule)+`;
+codeSchedule=`+JSON.stringify(codeSchedule)+`;
+  </script>
+  </body>
+  </html>`);
 
 
-  var str=Str.join('\n');  res.end(str); // res.writeHead(200, "OK", {'Content-Type': 'text/html'}); 
+  var str=Str.join('\n'); 
+  res.setHeader('Content-type', MimeType.html);
+  res.end(str); // res.writeHead(200, "OK", {'Content-Type': MimeType.html}); 
    
 }
 
@@ -196,29 +194,27 @@ codeSchedule="+JSON.stringify(codeSchedule)+";\n\
 
 
 /******************************************************************************
- * ReqStatic
+ * reqStatic
  ******************************************************************************/
-var ReqStatic=app.ReqStatic=function(req, res){
-  this.req=req; this.res=res;  this.site=req.site; this.Str=[];
-}
-ReqStatic.prototype.go=function() {
-  var self=this, req=this.req, res=this.res;
-  var site=req.site, objQS=req.objQS, siteName=req.siteName, pathName=req.pathName;
+app.reqStatic=function*() {
+  var req=this.req, res=this.res, flow=req.flow; this.Str=[];
+  var objQS=req.objQS, siteName=req.siteName, pathName=req.pathName;
 
-  var fiber = Fiber.current; 
-  var eTagIn=getETag(req.headers); //console.log(pathName); debugger
+  var eTagIn=getETag(req.headers);
   var keyCache=pathName; if(pathName==='/'+leafSiteSpecific) keyCache=siteName+keyCache; 
   if(!(keyCache in CacheUri)){
     var filename=pathName.substr(1);
-    var [err]=readFileToCache(filename);
+    var [err]=yield *readFileToCache(flow, filename);
     if(err) {
       if(err.code=='ENOENT') {res.out404(); return;}
+      if('host' in req.headers) console.error('Faulty request from'+req.headers.host);
+      if('Referer' in req.headers) console.error(req.headers.Referer);
       res.out500(err); return;
     }
   }
   var {buf, type, eTag, boZip, boUglify}=CacheUri[keyCache];
-  if(eTag===eTagIn){ res.writeHead(304); res.end(); return; } 
-  var mimeType=MimeType[type]; 
+  if(eTag===eTagIn){ res.out304(); return; }
+  var mimeType=MimeType[type];
   if(typeof mimeType!='string') console.log('type: '+type+', mimeType: ', mimeType);
   if(typeof buf!='object' || !('length' in buf)) console.log('typeof buf: '+typeof buf);
   if(typeof eTag!='string') console.log('typeof eTag: '+eTag);
@@ -234,27 +230,39 @@ ReqStatic.prototype.go=function() {
 /******************************************************************************
  * ReqLoginBack
  ******************************************************************************/
-var ReqLoginBack=app.ReqLoginBack=function(req, res){
-  this.req=req; this.res=res; this.site=req.site; this.mess=[];  this.Str=[];
+app.ReqLoginBack=function(req, res){
+  this.req=req; this.res=res; this.site=req.site; this.mess=[]; this.Str=[]; this.pool=mysqlPool;
 }
 
-ReqLoginBack.prototype.go=function(){
-  var self=this, req=this.req, res=this.res, sessionID=req.sessionID, objQS=req.objQS;
+ReqLoginBack.prototype.go=function*(){
+  var self=this, req=this.req, flow=req.flow, res=this.res, sessionID=req.sessionID, objQS=req.objQS;
 
-  var redisVar=this.req.sessionID+'_Login', strTmp=wrapRedisSendCommand('get',[redisVar]);   this.sessionLogin=JSON.parse(strTmp);
+  var redisVar=req.sessionID+'_Login'; 
+  this.sessionLogin=yield* getRedis(flow, redisVar,1);
   if(!this.sessionLogin) { res.out500('!sessionLogin');  return; }
   var strFun=this.sessionLogin.fun;
 
-  getSessionMain.call(this);
-  if(!this.sessionMain) { res.out500('!sessionMain');  return; } 
-  var redisVar=this.req.sessionID+'_Main', tmp=wrapRedisSendCommand('expire',[redisVar,maxUnactivity]);
+  //var redisVar=this.req.sessionID+'_Login', strTmp=wrapRedisSendCommand('get',[redisVar]);   this.sessionLogin=JSON.parse(strTmp);
+  //if(!this.sessionLogin) { res.out500('!sessionLogin');  return; }
+  //var strFun=this.sessionLogin.fun;
+  
 
-  if(!this.sessionMain.userInfoFrDB){ this.sessionMain.userInfoFrDB=extend({},specialistDefault); setSessionMain.call(this);  }
+  //getSessionMain.call(this);
+  this.sessionCache=yield* getRedis(flow, req.sessionID+'_Cache',1);
+  if(!this.sessionCache) { res.out500('!sessionCache');  return; } 
+  var redisVar=this.req.sessionID+'_Cache'; // tmp=wrapRedisSendCommand('expire',[redisVar,maxUnactivity]);
+  var tmp=yield* expireRedis(flow, redisVar, maxUnactivity);
 
+  if(!this.sessionCache.userInfoFrDB){
+    this.sessionCache.userInfoFrDB=extend({},specialistDefault);
+    //setSessionMain.call(this);
+    yield *setRedis(flow, req.sessionID+'_Cache', this.sessionCache, maxUnactivity);
+  }
+  
   
   if('error' in objQS && objQS.error=='access_denied') {this.writeHtml(objQS.error); return}
 
-  var fiber = Fiber.current;
+  //var fiber = Fiber.current;
 
 
     // getToken
@@ -264,13 +272,14 @@ ReqLoginBack.prototype.go=function(){
   if(req.objQS.state==this.sessionLogin.state) {
     var uToGetToken = "https://graph.facebook.com/v3.2/oauth/access_token?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&client_secret="+req.rootDomain.fb.secret+"&code="+code;
     var reqStream=requestMod.get(uToGetToken); 
-    var semCB=0, semY=0, boDoExit=0, buf; 
-    var myConcat=concat(function(bufT){
-      buf=bufT;
-      if(semY)fiber.run(); semCB=1;
-    });
-    reqStream.pipe(myConcat);
-    if(!semCB){semY=1; Fiber.yield();}
+    //var semCB=0, semY=0, boDoExit=0, buf; 
+    //var myConcat=concat(function(bufT){
+      //buf=bufT;
+      //if(semY)fiber.run(); semCB=1;
+    //});
+    //reqStream.pipe(myConcat);
+    //if(!semCB){semY=1; Fiber.yield();}
+    var semCB=0, semY=0,  buf, myConcat=concat(function(bufT){ buf=bufT; if(semY) flow.next(); semCB=1;  });    reqStream.pipe(myConcat);    if(!semCB){semY=1; yield}
     try{ var params=JSON.parse(buf.toString()); }catch(e){ console.log(e); res.out500('Error in JSON.parse, '+e); return; }
     self.access_token=params.access_token;
     if('error' in params) { var tmp='Error when getting access token: '+params.error.message; console.log(tmp); res.out500(tmp); return; }
@@ -280,12 +289,13 @@ ReqLoginBack.prototype.go=function(){
   }
 
 
-  var  semCB=0, semY=0, boDoExit=0; 
-  this.getGraph(function(err,res){
-    if(err){  boDoExit=1; res.out500(err);  }
-    if(semY)fiber.run(); semCB=1;
-  });
-  if(!semCB){semY=1; Fiber.yield();}  if(boDoExit==1) return;
+  //var  semCB=0, semY=0, boDoExit=0; 
+  //this.getGraph(function(err,res){
+    //if(err){  boDoExit=1; res.out500(err);  }
+    //if(semY)fiber.run(); semCB=1;
+  //});
+  //if(!semCB){semY=1; Fiber.yield();}  if(boDoExit==1) return;
+  var [err, res]=yield* this.getGraph();  if(err){ res.out500(err); return; }
 
 
 
@@ -299,38 +309,46 @@ ReqLoginBack.prototype.go=function(){
 
   if(typeof idIP=='undefined') {console.log("Error idIP is empty");}  else if(typeof nameIP=='undefined' ) {nameIP=idIP;}
   
-  if('userInfoFrIP' in this.sessionMain){
-    if(this.sessionMain.userInfoFrIP.IP!==IP || this.sessionMain.userInfoFrIP.idIP!==idIP){
-      this.sessionMain.userInfoFrDB=extend({},specialistDefault);    
+  if('userInfoFrIP' in this.sessionCache){
+    if(this.sessionCache.userInfoFrIP.IP!==IP || this.sessionCache.userInfoFrIP.idIP!==idIP){
+      this.sessionCache.userInfoFrDB=extend({},specialistDefault);    
     }
   }
-  this.sessionMain.userInfoFrIP={IP:IP,idIP:idIP,nameIP:nameIP};   setSessionMain.call(this);
+  this.sessionCache.userInfoFrIP={IP:IP,idIP:idIP,nameIP:nameIP};
+  
+  //setSessionMain.call(this);
+  yield *setRedis(flow, req.sessionID+'_Cache', this.sessionCache, maxUnactivity);
+  
   this.IP=IP;this.idIP=idIP;
 
 
     // setCSRFCode
   var CSRFCode=randomHash();
-  var redisVar=this.req.sessionID+'_CSRFCode'+ucfirst(this.sessionLogin.caller);   wrapRedisSendCommand('set',[redisVar, CSRFCode]);    var tmp=wrapRedisSendCommand('expire',[redisVar,maxUnactivity]);
+  var redisVar=this.req.sessionID+'_CSRFCode'+ucfirst(this.sessionLogin.caller);
+  //wrapRedisSendCommand('set',[redisVar, CSRFCode]);    var tmp=wrapRedisSendCommand('expire',[redisVar,maxUnactivity]);
+  yield *setRedis(req.flow, redisVar, CSRFCode, maxUnactivity);
   this.CSRFCode=CSRFCode;
-
 
   this.writeHtml(null);
 }
 
 
-ReqLoginBack.prototype.getGraph=function(callback){
-  var self=this, req=this.req, res=this.res;
+ReqLoginBack.prototype.getGraph=function*(){
+  var req=this.req, flow=req.flow, res=this.res;
   
     // With the access_token you can get the data about the user
   var uGraph = "https://graph.facebook.com/v3.2/me?access_token="+this.access_token+'&fields=id,name';  //  ,verified
   var reqStream=requestMod.get(uGraph);
-  //var fTmp=thisChangedWArg(this.partC,this,null);
-  var myConcat=concat(function(buf){
-    var objGraph=JSON.parse(buf.toString());
-    self.objGraph=objGraph;
-    callback(null,'');
-  });
-  reqStream.pipe(myConcat);
+  //var myConcat=concat(function(buf){
+    //var objGraph=JSON.parse(buf.toString());
+    //self.objGraph=objGraph;
+    //callback(null,'');
+  //});
+  //reqStream.pipe(myConcat);
+  var buf, myConcat=concat(function(bufT){ buf=bufT; flow.next();  });    reqStream.pipe(myConcat);    yield;
+  var objGraph=JSON.parse(buf.toString());
+  this.objGraph=objGraph;
+  return [null,''];
 }
 
 
@@ -346,32 +364,32 @@ ReqLoginBack.prototype.writeHtml=function(err, results){
   var uSite=req.strSchemeLong+req.wwwSite;
   
   var Str=this.Str;
-  Str.push("\n\
-<html><head><meta name='robots' content='noindex'>\n\
-<link rel='canonical' href='"+uSite+"'/>\n\
-</head>\n\
-<body>\n\
-<script>\n\
-var boOK="+JSON.stringify(boOK)+";\n\
-var strMess="+JSON.stringify(strMess)+";\n\
-\n\
-if(boOK){\n\
-  var userInfoFrIPTT="+JSON.stringify(this.sessionMain.userInfoFrIP)+";\n\
-  var userInfoFrDBTT="+JSON.stringify(this.sessionMain.userInfoFrDB)+";\n\
-  var CSRFCodeTT="+JSON.stringify(this.CSRFCode)+";\n\
-  var fun="+JSON.stringify(this.sessionLogin.fun)+";\n\
-  window.opener.loginReturn(userInfoFrIPTT,userInfoFrDBTT,fun,strMess,CSRFCodeTT);\n\
-  window.close();\n\
-}\n\
-else {\n\
-//debugger\n\
-  //alert('Login canceled: '+strMess);\n\
-  window.close();\n\
-}\n\
-</script>\n\
-</body>\n\
-</html>\n\
-");
+  Str.push(`
+<html><head><meta name='robots' content='noindex'>
+<link rel='canonical' href='`+uSite+`'/>
+</head>
+<body>
+<script>
+var boOK=`+JSON.stringify(boOK)+`;
+var strMess=`+serialize(strMess)+`;
+
+if(boOK){
+  var userInfoFrIPTT=`+JSON.stringify(this.sessionCache.userInfoFrIP)+`;
+  var userInfoFrDBTT=`+JSON.stringify(this.sessionCache.userInfoFrDB)+`;
+  var CSRFCodeTT=`+JSON.stringify(this.CSRFCode)+`;
+  var fun=`+serialize(this.sessionLogin.fun)+`;
+  window.opener.loginReturn(userInfoFrIPTT,userInfoFrDBTT,fun,strMess,CSRFCodeTT);
+  window.close();
+}
+else {
+//debugger
+  //alert('Login canceled: '+strMess);
+  window.close();
+}
+</script>
+</body>
+</html>
+`);
   var str=Str.join('\n');  this.res.end(str);
 }
 
@@ -379,11 +397,11 @@ else {\n\
   
 
 /******************************************************************************
- * SetupSql
+ * SetupSqlT
  ******************************************************************************/
-app.SetupSql=function(){
+app.SetupSqlT=function(){
 }
-app.SetupSql.prototype.createTable=function(SiteName,boDropOnly){
+app.SetupSqlT.prototype.createTable=function(SiteName,boDropOnly){
   if(typeof SiteName=='string') SiteName=[SiteName];
   
   var SqlTabDrop=[], SqlTab=[];
@@ -412,34 +430,34 @@ app.SetupSql.prototype.createTable=function(SiteName,boDropOnly){
 
 
 	  // Create users
-  SqlTab.push("CREATE TABLE "+userTab+" ( \n\
-  idUser INT(4) NOT NULL auto_increment, \n\
-  IP "+strIPEnum+" CHARSET utf8 NOT NULL, \n\
-  idIP VARCHAR(128) CHARSET utf8 NOT NULL DEFAULT '', \n\
-  PRIMARY KEY (idUser), \n\
-  UNIQUE KEY (IP,idIP) \n\
-  ) AUTO_INCREMENT = "+auto_increment+", ENGINE="+engine+" COLLATE "+collate+""); 
+  SqlTab.push(`CREATE TABLE `+userTab+` (
+  idUser INT(4) NOT NULL auto_increment,
+  IP `+strIPEnum+` CHARSET utf8 NOT NULL,
+  idIP VARCHAR(128) CHARSET utf8 NOT NULL DEFAULT '',
+  PRIMARY KEY (idUser),
+  UNIQUE KEY (IP,idIP)
+  ) AUTO_INCREMENT = `+auto_increment+`, ENGINE=`+engine+` COLLATE `+collate); 
 
 
 	  // Create schedule
-  SqlTab.push("CREATE TABLE "+scheduleTab+" ( \n\
-  idSchedule INT(8) NOT NULL auto_increment, \n\
-  idUser INT(4) NOT NULL, \n\
-  codeSchedule VARCHAR(20) NOT NULL DEFAULT '', \n\
-  title VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '', \n\
-  MTab TEXT CHARSET utf8 NOT NULL, \n\
-  unit ENUM('l', 'h', 'd', 'w') NOT NULL, \n\
-  firstDayOfWeek INT(1) NOT NULL DEFAULT 1, \n\
-  dateAlwaysInWOne INT(1) NOT NULL DEFAULT 4, \n\
-  start TIMESTAMP DEFAULT 0, \n\
-  vNames TEXT CHARSET utf8 NOT NULL, \n\
-  hFilter VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '', \n\
-  dFilter VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '', \n\
-  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP, \n\
-  lastActivity TIMESTAMP DEFAULT 0, \n\
-  PRIMARY KEY (idSchedule), \n\
-  FOREIGN KEY (idUser) REFERENCES "+userTab+"(idUser) ON DELETE CASCADE \n\
-  ) AUTO_INCREMENT = "+auto_increment+", ENGINE="+engine+" COLLATE "+collate+""); 
+  SqlTab.push(`CREATE TABLE `+scheduleTab+` (
+  idSchedule INT(8) NOT NULL auto_increment,
+  idUser INT(4) NOT NULL,
+  codeSchedule VARCHAR(20) NOT NULL DEFAULT '',
+  title VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '',
+  MTab TEXT CHARSET utf8 NOT NULL,
+  unit ENUM('l', 'h', 'd', 'w') NOT NULL,
+  firstDayOfWeek INT(1) NOT NULL DEFAULT 1,
+  dateAlwaysInWOne INT(1) NOT NULL DEFAULT 4,
+  start TIMESTAMP DEFAULT 0,
+  vNames TEXT CHARSET utf8 NOT NULL,
+  hFilter VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '',
+  dFilter VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '',
+  created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  lastActivity TIMESTAMP DEFAULT 0,
+  PRIMARY KEY (idSchedule),
+  FOREIGN KEY (idUser) REFERENCES `+userTab+`(idUser) ON DELETE CASCADE
+  ) AUTO_INCREMENT = `+auto_increment+`, ENGINE=`+engine+` COLLATE `+collate); 
 
   }
   if(boDropOnly) return SqlTabDrop;
@@ -447,7 +465,7 @@ app.SetupSql.prototype.createTable=function(SiteName,boDropOnly){
 }
 
 
-app.SetupSql.prototype.createFunction=function(SiteName,boDropOnly){
+app.SetupSqlT.prototype.createFunction=function(SiteName,boDropOnly){
   if(typeof SiteName=='string') SiteName=[SiteName];
   
   var SqlFunctionDrop=[], SqlFunction=[];
@@ -463,55 +481,55 @@ app.SetupSql.prototype.createFunction=function(SiteName,boDropOnly){
 
 
   SqlFunctionDrop.push("DROP PROCEDURE IF EXISTS "+siteName+"save");
-  SqlFunction.push("CREATE PROCEDURE "+siteName+"save(IIP "+strIPEnum+", IidIP VARCHAR(128), IlastActivity INT(4), IidSchedule INT(8), IcodeSchedule VARCHAR(20), Ititle VARCHAR(128), IMTab TEXT, Iunit ENUM('l', 'h', 'd', 'w'), IfirstDayOfWeek INT(1), IdateAlwaysInWOne INT(1), Istart INT(4), IvNames TEXT, IhFilter VARCHAR(65), IdFilter VARCHAR(65)) \n\
-      proc_label:BEGIN \n\
-        DECLARE Vc, VboOld, VidUser INT; \n\
-        #DECLARE Vnow TIMESTAMP; \n\
-        IF ISNULL(IMTab) THEN SET IMTab=''; END IF;\n\
-        IF ISNULL(IvNames) THEN SET IvNames=''; END IF;\n\
-\n\
-        IF ISNULL(IidSchedule) THEN \n\
-          INSERT INTO "+userTab+" (IP,idIP) VALUES (IIP, IidIP) ON DUPLICATE KEY UPDATE idUser=LAST_INSERT_ID(idUser); \n\
-          SET VidUser=LAST_INSERT_ID(); \n\
-          SET IcodeSchedule=SUBSTR(RAND(), 3); \n\
-          INSERT INTO "+scheduleTab+" (idUser,codeSchedule,lastActivity,MTab,vNames) VALUES (VidUser, IcodeSchedule, now(), '', ''); \n\
-          SET IidSchedule=LAST_INSERT_ID(); \n\
-        ELSE \n\
-          SELECT UNIX_TIMESTAMP(lastActivity)>IlastActivity INTO VboOld FROM "+scheduleTab+" WHERE idSchedule=IidSchedule AND codeSchedule=IcodeSchedule; \n\
-          SET Vc=ROW_COUNT(); \n\
-          IF Vc!=1 THEN SELECT CONCAT('Got ', Vc, ' rows') AS mess;  LEAVE proc_label; END IF; \n\
-          IF VboOld THEN SELECT 'boOld' AS mess;  LEAVE proc_label; END IF; \n\
-        END IF; \n\
-\n\
-        #SET Vnow=now(); \n\
-        UPDATE "+scheduleTab+" SET title=Ititle, MTab=IMTab, unit=Iunit, firstDayOfWeek=IfirstDayOfWeek, dateAlwaysInWOne=IdateAlwaysInWOne, start=FROM_UNIXTIME(Istart), vNames=IvNames, hFilter=IhFilter, dFilter=IdFilter, lastActivity=now() WHERE idSchedule=IidSchedule AND codeSchedule=IcodeSchedule; \n\
-        SELECT ROW_COUNT() AS nUpd; \n\
-        #SELECT UNIX_TIMESTAMP(Vnow) AS lastActivity, IidSchedule AS idSchedule, IcodeSchedule AS codeSchedule; \n\
-        SELECT UNIX_TIMESTAMP(lastActivity) AS lastActivity, idSchedule, codeSchedule FROM "+scheduleTab+" WHERE idSchedule=IidSchedule; \n\
-      END");
+  SqlFunction.push(`CREATE PROCEDURE `+siteName+`save(IIP `+strIPEnum+`, IidIP VARCHAR(128), IlastActivity INT(4), IidSchedule INT(8), IcodeSchedule VARCHAR(20), Ititle VARCHAR(128), IMTab TEXT, Iunit ENUM('l', 'h', 'd', 'w'), IfirstDayOfWeek INT(1), IdateAlwaysInWOne INT(1), Istart INT(4), IvNames TEXT, IhFilter VARCHAR(65), IdFilter VARCHAR(65))
+      proc_label:BEGIN
+        DECLARE Vc, VboOld, VidUser INT;
+        #DECLARE Vnow TIMESTAMP;
+        IF ISNULL(IMTab) THEN SET IMTab=''; END IF;
+        IF ISNULL(IvNames) THEN SET IvNames=''; END IF;
+
+        IF ISNULL(IidSchedule) THEN
+          INSERT INTO `+userTab+` (IP,idIP) VALUES (IIP, IidIP) ON DUPLICATE KEY UPDATE idUser=LAST_INSERT_ID(idUser);
+          SET VidUser=LAST_INSERT_ID();
+          SET IcodeSchedule=SUBSTR(RAND(), 3);
+          INSERT INTO `+scheduleTab+` (idUser,codeSchedule,lastActivity,MTab,vNames) VALUES (VidUser, IcodeSchedule, now(), '', '');
+          SET IidSchedule=LAST_INSERT_ID();
+        ELSE
+          SELECT UNIX_TIMESTAMP(lastActivity)>IlastActivity INTO VboOld FROM `+scheduleTab+` WHERE idSchedule=IidSchedule AND codeSchedule=IcodeSchedule;
+          SET Vc=ROW_COUNT();
+          IF Vc!=1 THEN SELECT CONCAT('Got ', Vc, ' rows') AS mess;  LEAVE proc_label; END IF;
+          IF VboOld THEN SELECT 'boOld' AS mess;  LEAVE proc_label; END IF;
+        END IF;
+
+        #SET Vnow=now();
+        UPDATE `+scheduleTab+` SET title=Ititle, MTab=IMTab, unit=Iunit, firstDayOfWeek=IfirstDayOfWeek, dateAlwaysInWOne=IdateAlwaysInWOne, start=FROM_UNIXTIME(Istart), vNames=IvNames, hFilter=IhFilter, dFilter=IdFilter, lastActivity=now() WHERE idSchedule=IidSchedule AND codeSchedule=IcodeSchedule;
+        SELECT ROW_COUNT() AS nUpd;
+        #SELECT UNIX_TIMESTAMP(Vnow) AS lastActivity, IidSchedule AS idSchedule, IcodeSchedule AS codeSchedule;
+        SELECT UNIX_TIMESTAMP(lastActivity) AS lastActivity, idSchedule, codeSchedule FROM `+scheduleTab+` WHERE idSchedule=IidSchedule;
+      END`);
   // CALL syncameetingLsave('fb', '12345', 1.4e9, null, null, 'myTitle', 'abcdMTab', 'd', 0, 4, 1.4e9, 'abcnames', 'abchFilt', 'abcdfilt')
   // CALL syncameetingLsave('fb', '12345', 1.5e9, 1, '4885819884842094', 'myNTitle', 'abcdMTab', 'd', 0, 4, 1.4e9, 'abcnames', 'abchFilt', 'abcdfilt')
   // CALL syncameetingLdelete(1,1)
 
   SqlFunctionDrop.push("DROP PROCEDURE IF EXISTS "+siteName+"delete");
-  SqlFunction.push("CREATE PROCEDURE "+siteName+"delete(IIP "+strIPEnum+", IidIP VARCHAR(128), IidSchedule INT(8)) \n\
-      proc_label:BEGIN \n\
-        DECLARE Vc, VidUser INT; \n\
-\n\
-        SELECT idUser INTO VidUser FROM "+userTab+" WHERE IP=IIP AND idIP=IidIP;\n\
-        SELECT ROW_COUNT() INTO Vc; \n\
-        IF Vc!=1 THEN SELECT CONCAT(Vc, ' rows with that ID') AS err;  LEAVE proc_label; END IF; \n\
-\n\
-        DELETE FROM "+scheduleTab+"  WHERE idUser=VidUser AND idSchedule=IidSchedule; \n\
-        SELECT ROW_COUNT() INTO Vc; \n\
-        #IF Vc!=1 THEN SELECT CONCAT(Vc, ' rows deleted') AS err;  LEAVE proc_label; END IF; \n\
-        SELECT Vc AS nDelete; \n\
-  \n\
-        SELECT COUNT(*) INTO Vc FROM "+scheduleTab+"  WHERE idUser=VidUser;\n\
-        IF Vc=0 THEN \n\
-          DELETE FROM "+userTab+"  WHERE idUser=VidUser; \n\
-        END IF; \n\
-      END");
+  SqlFunction.push(`CREATE PROCEDURE `+siteName+`delete(IIP `+strIPEnum+`, IidIP VARCHAR(128), IidSchedule INT(8))
+      proc_label:BEGIN
+        DECLARE Vc, VidUser INT;
+
+        SELECT idUser INTO VidUser FROM `+userTab+` WHERE IP=IIP AND idIP=IidIP;
+        SELECT ROW_COUNT() INTO Vc;
+        IF Vc!=1 THEN SELECT CONCAT(Vc, ' rows with that ID') AS err;  LEAVE proc_label; END IF;
+
+        DELETE FROM `+scheduleTab+`  WHERE idUser=VidUser AND idSchedule=IidSchedule;
+        SELECT ROW_COUNT() INTO Vc;
+        #IF Vc!=1 THEN SELECT CONCAT(Vc, ' rows deleted') AS err;  LEAVE proc_label; END IF;
+        SELECT Vc AS nDelete;
+
+        SELECT COUNT(*) INTO Vc FROM `+scheduleTab+`  WHERE idUser=VidUser;
+        IF Vc=0 THEN
+          DELETE FROM `+userTab+`  WHERE idUser=VidUser;
+        END IF;
+      END`);
 
   }
   var SqlA=this.funcGen(boDropOnly);
@@ -521,23 +539,23 @@ app.SetupSql.prototype.createFunction=function(SiteName,boDropOnly){
 }
 
 
-app.SetupSql.prototype.funcGen=function(boDropOnly){
+app.SetupSqlT.prototype.funcGen=function(boDropOnly){
   var SqlFunction=[], SqlFunctionDrop=[];
   if(boDropOnly) return SqlFunctionDrop;
   else return array_merge(SqlFunctionDrop, SqlFunction);
 }
-app.SetupSql.prototype.createDummies=function(SiteName){
+app.SetupSqlT.prototype.createDummies=function(SiteName){
   if(typeof SiteName=='string') SiteName=[SiteName];
   var SqlDummies=[];
   return SqlDummies;
 }
-app.SetupSql.prototype.createDummy=function(SiteName){
+app.SetupSqlT.prototype.createDummy=function(SiteName){
   if(typeof SiteName=='string') SiteName=[SiteName];
   var SqlDummy=[];
   return SqlDummy;
 }
 
-app.SetupSql.prototype.truncate=function(SiteName){
+app.SetupSqlT.prototype.truncate=function(SiteName){
   if(typeof SiteName=='string') SiteName=[SiteName];
   
   var SqlTableTruncate=[];
@@ -563,7 +581,7 @@ app.SetupSql.prototype.truncate=function(SiteName){
 }
 
   // Called when --sql command line option is used
-app.SetupSql.prototype.doQuery=function(strCreateSql){
+app.SetupSqlT.prototype.doQuery=function*(flow, strCreateSql){
   //var StrValidSqlCalls=['createTable', 'dropTable', 'createFunction', 'dropFunction', 'truncate', 'createDummy', 'createDummies'];
   if(StrValidSqlCalls.indexOf(strCreateSql)==-1){var tmp=strCreateSql+' is not valid input, try any of these: '+StrValidSqlCalls.join(', '); console.log(tmp); return; }
   var Match=RegExp("^(drop|create)?(.*?)$").exec(strCreateSql);
@@ -576,13 +594,17 @@ app.SetupSql.prototype.doQuery=function(strCreateSql){
   var SqlA=this[strMeth](SiteName, boDropOnly); 
   var strDelim=';', sql=SqlA.join(strDelim+'\n')+strDelim, Val=[], boDoExit=0;  
   
-  var fiber = Fiber.current;
-  myQueryF(sql, Val, mysqlPool, function(err, results){ 
-    var tmp=createMessTextOfMultQuery(SqlA, err, results);  console.log(tmp); 
-    if(err){            boDoExit=1;  debugger;         } 
-    fiber.run();
-  });
-  Fiber.yield();  if(boDoExit==1) return;
+  var [err, results]=yield* myQueryGen(flow, sql, Val, mysqlPool);
+  var tmp=createMessTextOfMultQuery(SqlA, err, results);  console.log(tmp); 
+  if(err) debugger; 
+  
+  //var fiber = Fiber.current;
+  //myQueryF(sql, Val, mysqlPool, function(err, results){ 
+    //var tmp=createMessTextOfMultQuery(SqlA, err, results);  console.log(tmp); 
+    //if(err){            boDoExit=1;  debugger;         } 
+    //fiber.run();
+  //});
+  //Fiber.yield();  if(boDoExit==1) return;
 
 }
 
@@ -627,7 +649,7 @@ app.ReqSql.prototype.createZip=function(objSetupSql){
 
 
   var outFileName=strAppName+'Setup.zip';
-  var objHead={"Content-Type": 'application/zip', "Content-Length":outdata.length, 'Content-Disposition':'attachment; filename='+outFileName};
+  var objHead={"Content-Type": MimeType.zip, "Content-Length":outdata.length, 'Content-Disposition':'attachment; filename='+outFileName};
   res.writeHead(200,objHead);
   res.end(outdata,'binary');
 }

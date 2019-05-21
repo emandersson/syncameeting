@@ -60,7 +60,7 @@ SiteExtend=function(){
     for(var i=0;i<SiteName.length;i++){
       var siteName=SiteName[i];   var tmp; if(tmp=Site[siteName].testWWW(wwwReq)) {return {siteName:siteName, wwwSite:tmp};  }
     }
-    return false;
+    return {siteName:null};
   }
   var regExtractDomain=RegExp("^[^/]+");
   for(var i=0;i<SiteName.length;i++){

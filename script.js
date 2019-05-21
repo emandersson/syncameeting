@@ -9,19 +9,22 @@ concat = require('concat-stream');
 requestMod = require('request');
 through = require('through')
 querystring = require('querystring');
-async = require('async');
+//async = require('async');
 formidable = require("formidable");
 crypto = require('crypto');
 tls=require('tls');
 childProcess = require('child_process');
 zlib = require('zlib');
-Fiber = require('fibers');
-Future = require('fibers/future');
+//Fiber = require('fibers');
+//Future = require('fibers/future');
 NodeZip=require('node-zip');
 //redis = require("then-redis");
 redis = require("redis");
 ip = require('ip');
+Streamify= require('streamify-string');
+serialize = require('serialize-javascript');
 var argv = require('minimist')(process.argv.slice(2));
+app=(typeof window==='undefined')?global:window;
 require('./lib.js');
 require('./libServerGeneral.js');
 require('./libServer.js');
@@ -30,7 +33,6 @@ require('./libServer.js');
 
 
 strAppName='syncameeting';
-app=(typeof window==='undefined')?global:window;
 extend=util._extend;
 
 
@@ -67,9 +69,13 @@ if(  (urlRedis=process.env.REDISTOGO_URL)  || (urlRedis=process.env.REDISCLOUD_U
 }
 
 
+var StrCookiePropProt=["HttpOnly", "Path=/","max-age="+3600*24*30];
+//if(boDO) { StrCookiePropProt.push("secure"); }
+var StrCookiePropStrict=StrCookiePropProt.concat("SameSite=Strict"),   StrCookiePropLax=StrCookiePropProt.concat("SameSite=Lax"),   StrCookiePropNormal=StrCookiePropProt.concat();
+strCookiePropStrict=";"+StrCookiePropStrict.join(';');  strCookiePropLax=";"+StrCookiePropLax.join(';');  strCookiePropNormal=";"+StrCookiePropNormal.join(';');
 
-Fiber( function(){
-  var fiber = Fiber.current;
+
+var flow=( function*(){
 
     // Default config variables
   boDbg=0; boAllowSql=1; port=5000; levelMaintenance=0; googleSiteVerification='googleXXX.html';
@@ -82,27 +88,21 @@ Fiber( function(){
   port=argv.p||argv.port||5000;
   if(argv.h || argv.help) {helpTextExit(); return;}
 
-
   var strConfig;
   if(boHeroku){ 
-    if(!process.env.jsConfig) { console.log('jsConfig-environment-variable is not set'); process.exit(1);}
+    if(!process.env.jsConfig) { console.error('jsConfig-environment-variable is not set'); return;} //process.exit(1);
     strConfig=process.env.jsConfig||'';
   }
   else{
-    fs.readFile('./config.js', function(errT, bufT) { //, this.encRead
-      if(errT){  console.log(errT); }
-      strConfig=bufT.toString();
-      fiber.run();
-    });
-    Fiber.yield();
-    //require('./config.js');    //require('./config.example.js');
+    var err, buf; fs.readFile('./config.js', function(errT, bufT) { err=errT;  buf=bufT;  flow.next();  });  yield;     if(err) {console.error(err); return;}
+    strConfig=buf.toString();
   } 
   var strMd5Config=md5(strConfig);
   eval(strConfig);
   var redisVar='str'+ucfirst(strAppName)+'Md5Config';
-  var tmp=wrapRedisSendCommand('get',[redisVar]);
+  var tmp=yield *getRedis(flow, redisVar);
   var boNewConfig=strMd5Config!==tmp; 
-  if(boNewConfig) { var tmp=wrapRedisSendCommand('set',[redisVar,strMd5Config]);  }
+  if(boNewConfig) { var tmp=yield *setRedis(flow, redisVar, strMd5Config);  }
 
   if('levelMaintenance' in process.env) levelMaintenance=process.env.levelMaintenance;
 
@@ -118,9 +118,17 @@ Fiber( function(){
 
 
     // Do db-query if --sql XXXX was set in the argument
+  //if(typeof argv.sql!='undefined'){
+    //var tTmp=new Date().getTime();
+    //var objSetupSql=new SetupSql(); objSetupSql.doQuery(argv.sql);
+    //console.log('Time elapsed: '+(new Date().getTime()-tTmp)/1000+' s'); 
+    //process.exit(0);
+  //}
+    // Do db-query if --sql XXXX was set in the argument
   if(typeof argv.sql!='undefined'){
+    if(typeof argv.sql!='string') {console.log('sql argument is not a string'); process.exit(-1); return; }
     var tTmp=new Date().getTime();
-    var objSetupSql=new SetupSql(); objSetupSql.doQuery(argv.sql);
+    var SetupSql=new SetupSqlT(); yield* SetupSql.doQuery(flow, argv.sql);
     console.log('Time elapsed: '+(new Date().getTime()-tTmp)/1000+' s'); 
     process.exit(0);
   }
@@ -137,51 +145,88 @@ Fiber( function(){
   StrFilePreCache=['lib.js', 'libClient.js', 'client.js', 'stylesheets/style.css','lang/en.js'];
   for(var i=0;i<StrFilePreCache.length;i++) {
     var filename=StrFilePreCache[i];
-    var [err]=readFileToCache(filename); if(err) {  console.log(err.message);  return;}
+    var [err]=yield* readFileToCache(flow, filename); if(err) {  console.log(err.message);  return;}
   }
-  createSiteSpecificClientJSAll();
+  yield* createSiteSpecificClientJSAll(flow);
   
   if(boDbg){
     fs.watch('.', makeWatchCB('.', ['client.js', 'libClient.js']) );
   }
 
   handler=function(req, res){
-    var domainName=req.headers.host; 
-
-    var cookies = parseCookies(req);
-    var sessionID;  if('sessionID' in cookies) sessionID=cookies.sessionID; else { sessionID=randomHash();   res.setHeader("Set-Cookie", "sessionID="+sessionID+"; SameSite=Lax"); }  //+ " HttpOnly" 
-
-
-
-    var ipClient=getIP(req);
-    var redisVarSession=sessionID+'_Main';
-    var redisVarCounter=sessionID+'_Counter', redisVarCounterIP=ipClient+'_Counter'; 
-    //var tmp=redisClient.send('eval',[luaCountFunc, 3, redisVarSession, redisVarCounter, redisVarCounterIP, tDDOSBan]).then(function(intCount){
-    var tmp=redisClient.send_command('eval',[luaCountFunc, 3, redisVarSession, redisVarCounter, redisVarCounterIP, tDDOSBan], function(err,intCount){
-      //console.log(intCount);
-      if(intCount>intDDOSMax) {res.outCode(429,"Too Many Requests, wait "+tDDOSBan+"s\n"); return; }
-
-
+    req.flow=(function*(){
+      
+      //res.setHeader("X-Frame-Options", "deny");  // Deny for all (note: this header is removed for images (see reqMediaImage) (should also be removed for videos))
+      res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");  // Deny for all (note: this header is removed in certain requests)
+      res.setHeader("X-Content-Type-Options", "nosniff");  // Don't try to guess the mime-type (I prefer the rendering of the page to fail if the mime-type is wrong)
+      //if(boDO) res.setHeader("Strict-Transport-Security", "max-age="+3600*24*365); // All future requests must be with https (forget this after a year)
+      res.setHeader("Referrer-Policy", "origin");  //  Don't write the refer unless the request comes from the origin
+      
 
       var domainName=req.headers.host; 
-      var objUrl=url.parse(req.url), qs=objUrl.query||'', objQS=querystring.parse(qs),  pathNameOrg=objUrl.pathname
+      var objUrl=url.parse(req.url), qs=objUrl.query||'', objQS=querystring.parse(qs),  pathNameOrg=objUrl.pathname;
       var wwwReq=domainName+pathNameOrg;
-      var tmp=Site.getSite(wwwReq);  
-      if(!tmp){ res.out404("404 Nothing at that url\n"); return; }
-      var siteName=tmp.siteName, wwwSite=tmp.wwwSite, pathName=wwwReq.substr(wwwSite.length); if(pathName.length==0) pathName='/';
-
-
-      if(pathName=='/index.php') { var tmp=objQS.page||''; res.out301('http://'+domainName+'/'+tmp); return; }
-
-      if(boDbg) console.log(req.method+' '+pathName);
-        
+      var {siteName,wwwSite}=Site.getSite(wwwReq);  
+      if(!siteName){ res.out404("404 Nothing at that url\n"); return; }
+      var pathName=wwwReq.substr(wwwSite.length); if(pathName.length==0) pathName='/';
       var site=Site[siteName];
+      
+      if(boDbg) console.log(req.method+' '+pathName);
 
       if(boHeroku && site.boTLS && req.headers['x-forwarded-proto']!='https') {
         if(pathName=='/' && qs.length==0) {        res.out301('https://'+req.headers.host); return; }
         else { res.writeHead(400);  res.end('You must use https'); return; }
       }
 
+
+      var cookies = parseCookies(req);
+      req.cookies=cookies;
+
+      req.boCookieNormalOK=req.boCookieLaxOK=req.boCookieStrictOK=false;
+      
+        // Check if a valid sessionID-cookie came in
+      var boSessionCookieInInput='sessionIDNormal' in cookies, sessionID=null, redisVarSessionCache;
+      if(boSessionCookieInInput) {
+        sessionID=cookies.sessionIDNormal;  redisVarSessionCache=sessionID+'_Cache';
+        var [err, tmp]=yield* cmdRedis(req.flow, 'EXISTS', redisVarSessionCache); req.boCookieNormalOK=tmp;
+      } 
+      
+      if(req.boCookieNormalOK){
+          // Check if Lax / Strict -cookies are OK
+        req.boCookieLaxOK=('sessionIDLax' in cookies) && cookies.sessionIDLax===sessionID;
+        req.boCookieStrictOK=('sessionIDStrict' in cookies) && cookies.sessionIDStrict===sessionID;
+        var redisVarDDOSCounter=sessionID+'_Counter';
+      }else{
+        sessionID=randomHash();  redisVarSessionCache=sessionID+'_Cache';
+        var ipClient=getIP(req), redisVarDDOSCounter=ipClient+'_Counter';
+      }
+      
+        // Increase DDOS counter 
+      var luaCountFunc=`local c=redis.call('INCR',KEYS[1]); redis.call('EXPIRE',KEYS[1], ARGV[1]); return c`;
+      var [err, intCount]=yield* cmdRedis(req.flow, 'EVAL',[luaCountFunc, 1, redisVarDDOSCounter, tDDOSBan]);
+      
+      
+      res.setHeader("Set-Cookie", ["sessionIDNormal="+sessionID+strCookiePropNormal, "sessionIDLax="+sessionID+strCookiePropLax, "sessionIDStrict="+sessionID+strCookiePropStrict]);
+       
+        // Check if to many requests comes in a short time (DDOS)
+      if(intCount>intDDOSMax) {res.outCode(429,"Too Many Requests ("+intCount+"), wait "+tDDOSBan+"s\n"); return; }
+      
+      
+        // Refresh / create  redisVarSessionCache
+      if(req.boCookieNormalOK){
+        var luaCountFunc=`local c=redis.call('GET',KEYS[1]); redis.call('EXPIRE',KEYS[1], ARGV[1]); return c`;
+        var [err, value]=yield* cmdRedis(req.flow, 'EVAL',[luaCountFunc, 1, redisVarSessionCache, maxUnactivity]); req.sessionCache=JSON.parse(value)
+      } else { 
+        yield* setRedis(req.flow, redisVarSessionCache, {}, maxUnactivity); 
+        req.sessionCache={};
+      }
+
+
+        // Set mimetype if the extention is recognized
+      var regexpExt=RegExp('\.([a-zA-Z0-9]+)$');
+      var Match=pathName.match(regexpExt), strExt; if(Match) strExt=Match[1];
+      if(strExt in MimeType) res.setHeader('Content-type', MimeType[strExt]);
+      
 
       var strScheme='http'+(site.boTLS?'s':''),   strSchemeLong=strScheme+'://';
       var uDomain=strSchemeLong+domainName;
@@ -190,42 +235,41 @@ Fiber( function(){
       //var rootDomainT=RootDomain[site.strRootDomain];  req.app_id=rootDomainT.fb.id;   req.app_secret=rootDomainT.fb.secret;
       req.rootDomain=RootDomain[site.strRootDomain];
 
-      Fiber( function(){
-        if(pathName.substr(0,5)=='/sql/'){
-          if(!boDbg && !boAllowSql){ res.out200('Set boAllowSql=1 (or boDbg=1) in the config.js-file');  return }
-          var reqSql=new ReqSql(req, res),  objSetupSql=new SetupSql();
-          req.pathNameWOPrefix=pathName.substr(5);
-          if(req.pathNameWOPrefix=='zip'){       reqSql.createZip(objSetupSql);     }
-          else {  reqSql.toBrowser(objSetupSql); }             
+      var objReqRes={req:req, res:res};
+      
+      if(pathName.substr(0,5)=='/sql/'){
+        if(!boDbg && !boAllowSql){ res.out200('Set boAllowSql=1 (or boDbg=1) in the config.js-file');  return }
+        var reqSql=new ReqSql(req, res),  objSetupSql=new SetupSql();
+        req.pathNameWOPrefix=pathName.substr(5);
+        if(req.pathNameWOPrefix=='zip'){       reqSql.createZip(objSetupSql);     }
+        else {  reqSql.toBrowser(objSetupSql); }             
+      }
+      else {
+        if(levelMaintenance){res.outCode(503, "Down for maintenance, try again in a little while."); return;}
+        if(pathName=='/') { var reqIndex=new ReqIndex(req, res); reqIndex.go();   }
+        else if(pathName=='/'+leafBE){  var reqBE=new ReqBE(req, res);  yield* reqBE.go();    }
+        //else if(pathName=='/'+leafAssign){  var reqAssign=new ReqAssign(req, res);    reqAssign.go();  }
+        else if(regexpLib.test(pathName) || regexpLooseJS.test(pathName) || pathName=='/conversion.html'){   yield* reqStatic.call(objReqRes);   }
+        else if(pathName=='/'+leafLogin){   
+          var state=randomHash(); //CSRF protection
+          var objT={state:state, IP:objQS.IP, fun:objQS.fun, caller:objQS.caller||"index"};
+          //var redisVar=req.sessionID+'_Login', tmp=wrapRedisSendCommand('set',[redisVar,JSON.stringify(objT)]);     var tmp=wrapRedisSendCommand('expire',[redisVar,300]);
+          yield *setRedis(req.flow, req.sessionID+'_Login', objT, 300);
+          var uLoginBack=uDomain+"/"+leafLoginBack;
+          var uTmp="http://www.facebook.com/v3.2/dialog/oauth?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&state="+state+'&display=popup';
+          res.writeHead(302, {'Location': uTmp}); res.end();
         }
-        else {
-          if(levelMaintenance){res.outCode(503, "Down for maintenance, try again in a little while."); return;}
-          if(pathName=='/') { var reqIndex=new ReqIndex(req, res); reqIndex.go();   }
-          else if(pathName=='/'+leafBE){  var reqBE=new ReqBE(req, res);  reqBE.go();    }
-          //else if(pathName=='/'+leafAssign){  var reqAssign=new ReqAssign(req, res);    reqAssign.go();  }
-          else if(regexpLib.test(pathName) || regexpLooseJS.test(pathName) || pathName=='/conversion.html'){   var reqStatic=new ReqStatic(req, res);      reqStatic.go();   }
-          else if(pathName=='/'+leafLogin){   
-            var state=randomHash(); //CSRF protection
-            var objT={state:state, IP:objQS.IP, fun:objQS.fun, caller:objQS.caller||"index"};
-            var redisVar=req.sessionID+'_Login', tmp=wrapRedisSendCommand('set',[redisVar,JSON.stringify(objT)]);     var tmp=wrapRedisSendCommand('expire',[redisVar,300]);
-            var uLoginBack=uDomain+"/"+leafLoginBack;
-            var uTmp="http://www.facebook.com/v3.2/dialog/oauth?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&state="+state+'&display=popup';
-            res.writeHead(302, {'Location': uTmp}); res.end();
-          }
-          else if(pathName=='/'+leafLoginBack){    var reqLoginBack=new ReqLoginBack(req, res);    reqLoginBack.go();    }
-          else if(pathName=='/monitor.html'){  var reqMonitor=new ReqMonitor(req, res);      reqMonitor.go();  }
-          else if(pathName=='/Sitemap.xml'){  var reqSiteMap=new ReqSiteMap(req, res);      reqSiteMap.go();  }
-          //else if(pathName=='/robots.txt'){  var reqRobots=new ReqRobots(req, res);      reqRobots.go();  }
-          else if(pathName=='/stat.html'){  var reqStat=new ReqStat(req, res);      reqStat.go();  }
-          else if(pathName=='/createDumpCommand'){  var str=createDumpCommand(); res.out200(str);     }
-          else if(pathName=='/debug'){    debugger;  res.end();}
-          else if(pathName=='/'+googleSiteVerification) res.end('google-site-verification: '+googleSiteVerification);
-          else {res.out404("404 Not Found\n"); return; }
-        }
-      }).run();
-    });
+        else if(pathName=='/'+leafLoginBack){    var reqLoginBack=new ReqLoginBack(req, res);    yield* reqLoginBack.go();    }
+        else if(pathName=='/createDumpCommand'){  var str=createDumpCommand(); res.out200(str);     }
+        else if(pathName=='/debug'){    debugger;  res.end();}
+        else if(pathName=='/'+googleSiteVerification) res.end('google-site-verification: '+googleSiteVerification);
+        else {res.out404("404 Not Found\n"); return; }
+      }
+     
+    
+    })(); req.flow.next();
   }
   http.createServer(handler).listen(parseInt(port, 10));
 
   console.log("Listening to port " + port);
-}).run();
+})(); flow.next();

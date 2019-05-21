@@ -1,5 +1,5 @@
 
-(function(){
+window.onload=function(){
 
 
 function createColJIndexNamesObj(arrName){
@@ -17,8 +17,8 @@ function createChildInd(arrI){
 
 Date.prototype.dayOfYear=function(){
   var tjJan1 = new Date(this.getFullYear(),0,1);
-	var daynum = Math.floor(    (   this.getTime()-tjJan1.getTime() - (this.getTimezoneOffset()-tjJan1.getTimezoneOffset())*60000   )/86400000    ) + 1;
-	return daynum;
+  var daynum = Math.floor(    (   this.getTime()-tjJan1.getTime() - (this.getTimezoneOffset()-tjJan1.getTimezoneOffset())*60000   )/86400000    ) + 1;
+  return daynum;
 }
 
 //
@@ -28,13 +28,13 @@ Date.prototype.dayOfYear=function(){
 // dateAlwaysInWOne is the date in January that is always in week 1 (For US: 1, for IS08601: 4)
 // boRewriteWeekNames should be true if one would like to rewrite the year-shift-week to have a single name (belonging to what ever year it lies mostly in) (For US: 0, for IS08601: 1)
 //
-Date.prototype.getWeek = function (firstDayOfWeek,dateAlwaysInWOne,boRewriteWeekNames) {
+Date.prototype.getWeek = function (firstDayOfWeek=0,dateAlwaysInWOne=1,boRewriteWeekNames=0) {
         // tj="javascript time", dow="day of week"
-	firstDayOfWeek = typeof firstDayOfWeek != 'undefined' ? firstDayOfWeek : 0; //default firstDayOfWeek to zero
-	var tjJan1 = new Date(this.getFullYear(),0,1);
-	var DOWJan1=(tjJan1.getDay()-firstDayOfWeek+7)%7; 
-	var dayNow = Math.floor(    (   this.getTime()-tjJan1.getTime() - (this.getTimezoneOffset()-tjJan1.getTimezoneOffset())*60000   )/86400000    ) + 1;
-	
+  //firstDayOfWeek = typeof firstDayOfWeek != 'undefined' ? firstDayOfWeek : 0; //default firstDayOfWeek to zero
+  var tjJan1 = new Date(this.getFullYear(),0,1);
+  var DOWJan1=(tjJan1.getDay()-firstDayOfWeek+7)%7; 
+  var dayNow = Math.floor(    (   this.getTime()-tjJan1.getTime() - (this.getTimezoneOffset()-tjJan1.getTimezoneOffset())*60000   )/86400000    ) + 1;
+  
   var DOWNow=DOWJan1+dayNow-1;
   var DOWDateAlwaysInW1=DOWJan1+dateAlwaysInWOne-1;
   var weekDateAlwaysInW1Floor=Math.floor(DOWDateAlwaysInW1/7); //if one just makes a floor one gets this value
@@ -44,24 +44,24 @@ Date.prototype.getWeek = function (firstDayOfWeek,dateAlwaysInWOne,boRewriteWeek
 
   if(boRewriteWeekNames){
     if(weeknum >= 52) { //This "if" is for crude selection only (saves a bit com computaion though)
-		  var tjNextJan1 = new Date(this.getFullYear()+1,0,1);
-		  var DOWNextJan1 = (tjNextJan1.getDay()-firstDayOfWeek+7)%7;
-		  var dayNextNow = Math.floor(    (   this.getTime()-tjNextJan1.getTime() - (this.getTimezoneOffset()-tjNextJan1.getTimezoneOffset())*60000   )/86400000    ) + 1;  
+      var tjNextJan1 = new Date(this.getFullYear()+1,0,1);
+      var DOWNextJan1 = (tjNextJan1.getDay()-firstDayOfWeek+7)%7;
+      var dayNextNow = Math.floor(    (   this.getTime()-tjNextJan1.getTime() - (this.getTimezoneOffset()-tjNextJan1.getTimezoneOffset())*60000   )/86400000    ) + 1;  
       var dayDiff=1-dayNextNow;
       if(dayDiff<=DOWNextJan1 && DOWNextJan1<=3 ){weeknum=1; }  // If close to next year shift and (next years) Jan1 is early in the week
-	  }
+    }
     else if(weeknum <= 1) { //This "if" is for crude selection only (saves a bit com computaion though)
-		  var tjDec31 = new Date(this.getFullYear()-1,11,31);
+      var tjDec31 = new Date(this.getFullYear()-1,11,31);
       var weekDec31=tjDec31.getWeek(firstDayOfWeek,dateAlwaysInWOne,boRewriteWeekNames);
-		  //var tjPrevJan1 = new Date(this.getFullYear()-1,0,1);
-		  //var DOWPrevJan1 = (tjPrevJan1.getDay()-firstDayOfWeek+7)%7;
-		  var dayDiff=dayNow-1;
+      //var tjPrevJan1 = new Date(this.getFullYear()-1,0,1);
+      //var DOWPrevJan1 = (tjPrevJan1.getDay()-firstDayOfWeek+7)%7;
+      var dayDiff=dayNow-1;
       var daysOfWeekRemainingAtJan1=6-DOWJan1; // Week days remaining at Jan1  
-		  if(dayDiff<=daysOfWeekRemainingAtJan1 && DOWJan1>=3 ){weeknum=weekDec31; }  // If close to prev year shift and Jan1 is late in the week
-	  }
+      if(dayDiff<=daysOfWeekRemainingAtJan1 && DOWJan1>=3 ){weeknum=weekDec31; }  // If close to prev year shift and Jan1 is late in the week
+    }
   }
 
-	return weeknum;
+  return weeknum;
 };  
 
 // Test code: t1=new Date('2008-12-27');$sch.start=t1.valueOf()/1000
@@ -78,10 +78,7 @@ Date.prototype.getWeek = function (firstDayOfWeek,dateAlwaysInWOne,boRewriteWeek
 function popUpExtend($el){
   $el.openPop=function() {
     $messageText.detach(); $el.append($messageText);
-    //siz=getViewPortSize();  winW=siz.w;winH=siz.h;
-    //var siz=getViewPortSize(); var winW=siz.w;
     var winW=$(window).width(),winH=$(window).height();
-    //var docH=getScrollHeight();
     var $doc=$(document), scrollX=$doc.scrollLeft(), scrollY=$doc.scrollTop(); 
     //var pageYOffset=window.pageYOffset;   if(typeof pageYOffset =='undefined') pageYOffset=document.body.scrollTop;
     $el.setBlanketSize();
@@ -479,10 +476,10 @@ function scheduleExtend($el){
     if($el.MTab!=null && $el.vNames!=null) {
       for(var i=0;i<$el.MTab.length;i++) {
         var $img=$('<img>').attr({src:uDelete}).mouseover(function(){$(this).attr({src:uDelete1})}).mouseout(function(){$(this).attr({src:uDelete})})
-              .click(makeRemovePersonFunc(i)).css({cursor:'pointer'});
+              .click(makeRemovePersonFunc(i)).css({cursor:'pointer', zoom:2});
         var $input=$('<input type=text placeholder=Name>').val($el.vNames[i]).keyup(makeKeyUpFunc(i));
         
-        var $row=$('<tr>'),$td=$('<td>').append('&nbsp;',$img,' ',$input);
+        var $row=$('<tr>'),$td=$('<td>').append('&nbsp;',$img,' ',$input).css({'white-space':'nowrap'});
         $row.append($td); 
         for(var j=0;j<$el.MTab[i].length;j++) { 
           var tmp,eTmp=$el.MTab[i][j];
@@ -493,7 +490,7 @@ function scheduleExtend($el){
           $row.append($td); 
         }
         $el.$tbody.append($row);
-	    }
+      }
     }
     var $button=$('<button>').html('+').click(addPerson), $td=$('<td>').css({'text-align':'center'}).append($button), $row=$('<tr>').append($td);
 
@@ -797,7 +794,7 @@ function dayFilterExtend($el){
     $sch.convertMTab('',vTimeN);   $sch.vTime=vTimeN;   $sch.M2Table();
   };  } 
   $el.colOn={background:'#4f4'};$el.colOff={background:'#eee'};
-  $el.append('Only include certain days: ');
+  $el.append('Mark the week days to be included: ');
   for(var i=0;i<7;i++){ var $but=$('<button>').html(arrDayName[i]).click(makeFunc(i));  $el.append($but,'&nbsp;&nbsp;');}
   return $el;
 }
@@ -969,7 +966,8 @@ beRet=function(data,textStatus,jqXHR){
 
 GRet=function(data){
   var tmp;
-  tmp=data.strMessageText;   if(typeof tmp!="undefined") setMess(tmp);
+  //tmp=data.strMessageText;   if(typeof tmp!="undefined") setMess(tmp);
+  tmp=data.strMessageText;   if(typeof tmp!="undefined") {setMess(tmp); if(/error/i.test(tmp)) navigator.vibrate(100);}
   tmp=data.CSRFCode;   if(typeof tmp!="undefined") CSRFCode=tmp; 
   tmp=data.userInfoFrIP; if(typeof tmp!="undefined") {userInfoFrIP=tmp;}
   tmp=data.userInfoFrDBUpd; if(typeof tmp!="undefined") {  for(var key in tmp){ userInfoFrDB[key]=tmp[key]; }   }
@@ -982,55 +980,37 @@ GRet=function(data){
 
 
 
+window.setup1=function(){
 
+  window.elHtml=document.documentElement;  window.elBody=document.body;
+  window.$html=$(document.documentElement);
+  window.$body=$('body');
+  $body.css({height:'100%'});
+  $html.css({height:'100%'});
+  var browser={brand:'bla'};
 
+  window.boTouch = Boolean('ontouchstart' in document.documentElement);  //boTouch=1;
 
-var setup1=function(){
-
-  elHtml=document.documentElement;  elBody=document.body
-  $body=$('body');
-  browser={brand:'bla'};
-
-  boTouch = Boolean('ontouchstart' in document.documentElement);  //boTouch=1;
-  
   var ua=navigator.userAgent, uaLC = ua.toLowerCase(); //alert(ua);
-  boAndroid = uaLC.indexOf("android") > -1;
-  boFF = uaLC.indexOf("firefox") > -1; 
-  //boIE = uaLC.indexOf("msie") > -1; 
-  versionIE=detectIE();
-  boIE=versionIE>0; if(boIE) browser.brand='msie';
+  window.boAndroid = uaLC.indexOf("android") > -1;
+  window.boFF = uaLC.indexOf("firefox") > -1; 
+  //var boIE = uaLC.indexOf("msie") > -1; 
+  var versionIE=detectIE();
+  window.boIE=versionIE>0; if(boIE) browser.brand='msie';
 
-  boChrome= /chrome/i.test(uaLC);
-  boIOS= /iPhone|iPad|iPod/i.test(uaLC);
-  boEpiphany=/epiphany/.test(uaLC);    if(boEpiphany && !boAndroid) boTouch=false;  // Ugly workaround
+  window.boChrome= /chrome/i.test(uaLC);
+  window.boIOS= /iPhone|iPad|iPod/i.test(uaLC);
+  window.boEpiphany=/epiphany/.test(uaLC);    if(boEpiphany && !boAndroid) boTouch=false;  // Ugly workaround
 
-  boOpera=RegExp('OPR\\/').test(ua); if(boOpera) boChrome=false; //alert(ua);
+  window.boOpera=RegExp('OPR\\/').test(ua); if(boOpera) boChrome=false; //alert(ua);
 
-  dr=window.devicePixelRatio; 
-  if(boIOS) {       
-    sc=1/dr; 
-    //if(dr>=2) sc=0.8;
-    sc=0.5;
-  } else {  sc=1; }
-  //if(boIOS) {  dr=window.devicePixelRatio;  sc=1/dr;} else {  sc=1; }
+  if(boTouch){
+    if(boIOS) {
+      var tmp={"-webkit-overflow-scrolling":"touch", "overflow":"hidden", height:'100%', overflow:'hidden'};
+      elBody.css(tmp);  elHtml.css(tmp);
+    } 
+  }
 
- 
-  var w=screen.width, h=screen.height;
-  var w=screen.availWidth, h=screen.availHeight;
-  var w=$(window).width(), h=$(window).height();
-  var w=window.innerWidth, h=window.innerHeight;
-  
-  if(boAndroid) $('#viewportMy').attr('content','width=device-width,initial-scale='+sc);
-  else $('#viewportMy').attr('content','initial-scale='+sc);
-
-  //$('#viewportMy').attr('content','width=device-width,initial-scale='+sc+',minimum-scale='+sc+',maximum-scale='+sc);
-  //$('#viewportMy').attr('content','width=device-width,initial-scale='+sc+', user-scalable=no');
-  //alert($('#viewportMy').attr('content'));
-  //$('#viewportMy').attr('content','width=device-width');
-
-
-  
- 
   assignSiteSpecific();
 
   var oVersion=getItem('version');
@@ -1042,9 +1022,9 @@ var setup1=function(){
   userInfoFrIP=null;
 
   CSRFCode='';
- 
 
-  strScheme='http'+(boTLS?'s':'');    strSchemeLong=strScheme+'://';    uSite=strSchemeLong+wwwSite;     uCommon=strSchemeLong+wwwCommon;       uBE=uSite+"/"+leafBE;
+
+  strScheme='http'+(boTLS?'s':'');    strSchemeLong=strScheme+'://';    uSite=strSchemeLong+site.wwwSite;     uCommon=strSchemeLong+wwwCommon;       uBE=uSite+"/"+leafBE;
 
   uBE=uSite+"/"+leafBE;
   uFE=uSite;
@@ -1079,7 +1059,7 @@ var setup1=function(){
 
   colMenuBOn='#616161'; colMenuBOff='#aaa';
 
-  
+
 
 
   $imgBusy=$('<img>').attr({src:uBusy});
@@ -1087,20 +1067,20 @@ var setup1=function(){
   $messageText.css({font:'courier'});
 
   $imgHelp=$('<img>').attr({src:uHelpFile}).css({'vertical-align':'-0.4em'});
-  
-  
+
+
   arrDayName=['Su','M','Tu','W','Th','F','Sa'];
   arrMonthName=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
    
 
-  
 
-  
+
+
   $body.css({padding:'0 0 0 0'});
   $body.css({margin:'0 0 0 0'});
-  
-  
+
+
 
   $.ajaxSetup({
     url: uBE,
@@ -1119,29 +1099,21 @@ var setup1=function(){
 
   //oAJAXSponList={url:uSponListBE,crossDomain:true,type: "GET",dataType:'jsonp', processData:true, success: beReth, jsonpCallback: 'beRet'};
   oAJAX={url:uBE,type: "POST",dataType:'json', processData:false,success: beRet};
- 
-
-  setTimeout(setup2,1);
-}
-function beReth(tmp){ }
 
 
 
-var setup2=function(){
+  var maxWidth='800px';
 
   colButtAllOn='#9f9', colButtOn='#0f0', colButtOff='#ddd', colFiltOn='#bfb', colFiltOff='#ddd', colFontOn='#000', colFontOff='#777', colActive='#65c1ff', colStapleOn='#f70', colStapleOff='#bbb';
 
   $body.css({visibility:'visible',background:'#fff'});
+  $body.css({display:'flex','flex-direction':'column'});
+  
   //$loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0px 0px 0px 0px',height:'0.9em'});
   $loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0em 0em 0em 0em','font-size':'75%'});
     
   $H1=$('h1:eq(0)');
 
-  var strTmp='https://emagnusandersson.com/syncAMeeting'; 
-  var $aLink=$('<a>').attr({href:strTmp}).append('More info').css({'font-size':'100%','font-weight':'bold'}); 
-  $iframe=$('<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsyncameeting.eu01.aws.af.cm&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=false&amp;font&amp;colorscheme=light&amp;action=like&amp;height=21&amp;appId=511686352189575" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;" allowTransparency="true"></iframe>');
-  $iframe.css({'vertical-align':'middle','margin-left':'1em'});
-  $aDiv=$('<div>').append($aLink).css({'margin-bottom': '1em'});   
 
   $titleInp=titleInpExtend($('<div>'));
 
@@ -1152,7 +1124,7 @@ var setup2=function(){
   //$boxWeek=boxWeekExtend($('<div>'));  
   $firstDayOfWeek=firstDayOfWeekExtend($('<div>'));  
   $dateAlwaysInWOne=dateAlwaysInWOneExtend($('<div>'));  
-  
+
 
   var makeFunc=function(nStChange,nColsChange){return function(){
     var vTimeN=$sch.calcVTime('','','',nStChange,nColsChange);  $sch.convertMTab('',vTimeN);  $sch.vTime=vTimeN;  $sch.M2Table();
@@ -1162,57 +1134,66 @@ var setup2=function(){
   $buttDecCols=$('<button>').html('-').click(makeFunc(0,-1));
   $buttIncCols=$('<button>').html('+').click(makeFunc(0,1));
 
+  // ☰≡
   $settingsHead=$('<span>').html('Settings:');
-  $settingsDiv=settingsDivExtend($('<div>'));  $settingsDiv.addClass('content');//.css({'line-height':'2em'});
+  $settingsHead=$('<button>').html('≡').on('click',function(){$settingsDiv.toggle();}).css({margin:'0 1em'});
+  $settingsDiv=settingsDivExtend($('<div>'));  $settingsDiv.addClass('content');
+  $settingsDiv.css({position:'fixed', 'background-color':'#ccc', border:'1px solid', width:'calc(100% - 3em)', 'overflow-y':'scroll', 'max-height':'calc(100% - 10em)', 'box-sizing':'border-box', 'z-index':1, 'max-width':'calc('+maxWidth+' - 3em'});
+  //$settingsDiv.css({flex:'1 1 auto', 'overflow-y':'scroll', 'box-sizing':'border-box', 'z-index':1, 'max-height':'calc(100vh - 9em)'});
+  if(boTouch) $settingsDiv.css({'max-height':'calc(100% - 4em)'});
+  $settingsDiv.hide();
 
-  $settingsDivOuter=menuCurtainExtend($('<div>').append($settingsHead,$settingsDiv),[],0);
+  $settingsDivOuter=menuCurtainExtend($('<div>').append($settingsHead,$settingsDiv),[],0).css({margin:'0.5em auto .5em auto'});
+  //$settingsDivW=$('<div>').append($settingsHead,$settingsDiv).css({display:'flex', 'flex-direction':'row', 'z-index':1, 'align-items':'flex-start', position:'absolute'});
+  //$settingsDivOuter=$('<div>').append($settingsDivW).css({margin:'0.5em auto 1em auto', position:'relative'});
 
+  
+  
   $sch=scheduleExtend($('<table>'));
   $unitSelector.setUpButtStat();  $hourFilter.setUpButtStat();  $dayFilter.setUpButtStat();
 
 
-  $title=$('<div>').css({'font-weight':'bold','font-size':'150%','margin-top':'0.6em','margin-bottom':'0.5em'});
+  $title=$('<div>').css({'font-weight':'bold','font-size':'150%'}); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
 
   $deleteConfirmPop=deleteConfirmPopExtend($('<div>'));
   $loginDiv=loginDivExtend($('<div>'));   $loginDiv.setHead('Need an identity'); loginReturn2=loginReturnList;
   $scheduleList=scheduleListExtend($('<div>')).hide().css({margin:'0.2em auto 0.6em'});
 
+  $schW=$('<div>').append($sch, $scheduleList).css({flex:'1 1 auto', 'overflow-y':'scroll', height:'100%'});
+  
   $messPop=messPopExtend($('<div>'));
 
-  var $saveButton=$('<button>').html('Save').click($sch.save);
+  var $saveButton=$('<button>').html('Save').click($sch.save).css({'margin-right':'0.5em'});
   var $spanRed=$('<span>').css({"background":"#f00",border:'black solid 1px'}).html('&nbsp;&nbsp;&nbsp;');
   var $spanBusy=$('<span>').css({'float':"right"}).append($spanRed,' = Busy'); 
   $loginButt=loginButtExtend($('<button>'));
-  
-  var $saveDiv=$('<div>').append('<br>',$saveButton, ' ',$loginButt,$spanBusy).css({margin:'0.2em auto 0.6em'});
 
- 
- 
-  $mainDivs=$([]).push($loginInfo).push($H1).push($aDiv).push($settingsDivOuter).push($title).push($sch).push($saveDiv).push($scheduleList);
+  //var $saveDiv=$('<div>').append('<br>',$saveButton, ' ',$loginButt,$spanBusy).css({margin:'0.2em auto 0.6em'});
+
+
+  var strTmp='https://emagnusandersson.com/syncAMeeting'; 
+  var $aLink=$('<a>').attr({href:strTmp}).append('More info').css({'font-size':'100%','font-weight':'bold', flex:'1 1 auto'}); 
+  $iframe=$('<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsyncameeting.eu01.aws.af.cm&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=false&amp;font&amp;colorscheme=light&amp;action=like&amp;height=21&amp;appId=511686352189575" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;" allowTransparency="true"></iframe>');
+  $iframe.css({'vertical-align':'middle','margin-left':'1em'});
+  $divFoot=$('<div>').append($saveButton, $loginButt, $aLink, $spanBusy).css({});  
+  $divFoot.css({bottom:'0px', display:'flex', 'flex-direction':'row', width:'100%', padding:'1em', 'text-align':'center', 'border-top':'1px solid', background:'white'}); 
+  
+
+  //$mainDivs=$([]).push($loginInfo).push($H1).push($settingsDivOuter).push($title).push($schW).push($saveDiv).push($scheduleList).push($divFoot);
+  $mainDivs=$([]).push($loginInfo, $H1, $settingsDivOuter, $title, $schW, $divFoot); //, $saveDiv, $scheduleList
   $body.append($mainDivs);
-  
-  
-  
-  var w=window.innerWidth, h=window.innerHeight;
-  var w=screen.availWidth, h=screen.availHeight;
-  
-  var tmpArr=[];
-  var w=screen.width, h=screen.height;    tmpArr.push('screen.width='+w+', '+h);
-  var w=screen.availWidth, h=screen.availHeight;    tmpArr.push('screen.availWidth='+w+', '+h);
-  var w=$(window).width(), h=$(window).height();    tmpArr.push('$(window).width='+w+', '+h);
-  var w=window.innerWidth, h=window.innerHeight;    tmpArr.push('window.innerWidth='+w+', '+h);
-  //alert(tmpArr.join('\n'));
-  
-  if(boIOS){w=dr*w;h=dr*h;}
 
-  $mainDivs.css({'text-align':'left',background:'#fff','max-width':'800px','margin-left':'auto','margin-right':'auto'});
+
+  if(boTouch) $H1.remove();
+  $mainDivs.css({'text-align':'left',background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'});
   //$mainDivs.css({'text-align':'left',background:'#fff','max-width':w+'px','margin-left':'auto','margin-right':'auto'});
-  
+
   $H1.css({'text-align':'center',background:'#ff0',border:'solid 1px',color:'black','font-size':'2em','font-weight':'bold',
       padding:'0.6em 0.2em 0.6em 0.2em',margin:'0.2em auto 0.2em auto'}); 
-  $title.css({'text-align':'center'});
+  $divFoot.css({'text-align':'center'});
+  $title.css({'text-align':'center',background:'lightgrey'});
 
-  $sch.css({'width':'auto','text-align':''});
+  //$sch.css({'width':'auto','text-align':''});
 
   lastActivity=0;
   //firstAJAXCall();
@@ -1229,58 +1210,18 @@ var setup2=function(){
   //else $(window).bind('resize', orientationChangeMy);
   //orientationChangeMy();
 
-  
 }
-//
-//debugger
-
-function setWidth(w){
-  var maxWidth=800;  if(w>maxWidth) w=maxWidth;
-  var textPadding=5;
-  $mainDivs.css({'width':(w-10)+'px'});
-  //var tmpMarg=10; if(boAndroid) tmpMarg=20;
-  //$menuTop.css({'width':(w-tmpMarg)+'px'});
-  
-  //var tmp=textPadding+'px';  $divsText.css({width:(w-2*textPadding)+'px','padding-left':tmp,'padding-right':tmp});
-}
-function orientationChangeMy(event){  
-  //window.scrollTo(0, 1);
-  var tmpArr=[];
-  var w=$(window).width(), h=$(window).height();    tmpArr.push('$(window).width='+w+', '+h);
-  var w=window.innerWidth, h=window.innerHeight;    tmpArr.push('window.innerWidth='+w+', '+h);
-  var w=screen.width, h=screen.height;    tmpArr.push('screen.width='+w+', '+h);
-  var w=screen.availWidth, h=screen.availHeight;    tmpArr.push('screen.availWidth='+w+', '+h);
-  
-  //alert(tmpArr.join('\n'));
-  
-  var boPortrait=0;  if(typeof window.orientation!=='undefined' && Math.abs(window.orientation)!=90 ) boPortrait=1; 
-  
-  if(boIOS){w=dr*w;h=dr*h; if(boPortrait==0) w=h;}
-
-  
-  //alert('p'+window.orientation+' '+w+'x'+h);
-  
-  if(boIOS) {   $('#viewportMy').attr('content','width='+w+'px, initial-scale='+sc); }
-  //else {   $('#viewportMy').attr('content','width='+w+'px, initial-scale='+sc); }
-  
-
-  //alert($('#viewportMy').attr('content'));
-  
-  //else  if(boPortrait) {  if(w>h) {tmp=w; w=h;h=tmp;}  }else {  if(w<h) {tmp=w; w=h;h=tmp;}  }
-  
-  setWidth(w);
-}
-
+setup1();
 
 /*******************************************************************************************************************
  * Document ready function
  *******************************************************************************************************************/
 
-window.onload=function(){
-   setup1();
-};
+//window.onload=function(){
+   //setup1();
+//};
 
-})();
+}
 
 
 
