@@ -71,7 +71,6 @@ $.fn.push = function(){
  *******************************************************************************************************************/
 
 var autocompleteFieldExtend=function($el,storeID,func){
-"use strict"
   var createMenu=function(){ 
     var wid=$el.width(), hei=32;
     var pos = $el.position(), x=pos.left+3, y=pos.top+hei;
@@ -177,7 +176,6 @@ var removeChildren=function(myNode){
   }
 }
 var jQueryObjToFragment=function($items){
-"use strict"
   var fragment = createFragment();
   for(var i=0; i<$items.length; i++){ fragment.append($items[i]); }
   return fragment;

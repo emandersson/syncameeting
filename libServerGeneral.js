@@ -10,86 +10,35 @@ app.parseCookies=function(req) {
   return list;
 }
 
-//MyQuery=function(sql,Val,pool,callback){this.sql=sql; this.Val=Val; this.callback=callback; this.pool=pool; this.iCount=0;};
-//MyQuery.prototype.go=function(){
-  //var self=this;  //console.log(this.sql); 
-  ////console.log('iCount '+this.iCount); 
-  //this.iCount++;
-  //this.pool.getConnection(function(err, connection) {
-    //if(err) {
-      //console.log('Error when getting mysql connection: ');
-      //if(typeof err=='object' && 'code' in err) {
-        //console.log('err.code: '+err.code);
-        //if(err.code=='PROTOCOL_CONNECTION_LOST' || err.code=='ECONNREFUSED' || err.code=='ECONNRESET'){
-          //if(self.iCount<nDBRetry) { setTimeout(thisChanged(self.go,self),2000); return;  }
-          //console.log('self.iCount=='+self.iCount+'>=nDBRetry');         
-        //}
-      //}
-      //else if(typeof err=='object') { console.log('err has no property "code" in it: '+err); }
-      //else if(typeof err=='string') {console.log('err: '+err); }
-      //else {console.log('err is neither an object nor a string: '+err); }
-      //self.callback(err); 
-      //return;
-    //}
-    //connection.query(self.sql, self.Val, function(err, results, fields) {
-      //connection.release();
-      //if(err) {
-        //console.log('Error when making mysql query: ');
-        //if(typeof err=='object' && 'code' in err) {
-          //console.log('err.code: '+err.code); debugger
-          //if(err.code=='PROTOCOL_CONNECTION_LOST' || err.code=='ECONNREFUSED'){
-            //if(self.iCount<nDBRetry) { setTimeout(thisChanged(self.go,self),2000); return;  }
-            //console.log('self.iCount=='+self.iCount+'>=nDBRetry');  
-          //}
-        //}
-        //else if(typeof err=='object') {console.log('err has no property "code" in it: '+err); }
-        //else if(typeof err=='string') {console.log('err: '+err); }
-        //else {console.log('err is neither an object nor a string: '+err); }
-        //console.log('sql: '+self.sql);
-        //console.log('Val.length: '+self.Val.length);
-        //self.callback(err); 
-        //return;
-      //}
-      //self.callback(null,results, fields);
-    //});
-  //});
-//}
-//myQueryF=function(sql,Val,pool,callback){
-  //var q=new MyQuery(sql,Val,pool,callback); q.go();
-//}
 
 
-app.myQueryGen=function*(flow, sql, Val, pool){ 
-  var err, connection, results, fields;
-  for(var i=0;i<nDBRetry;i++){
-    pool.getConnection(function(errT, connectionT) { err=errT; connection=connectionT; flow.next(); }); yield;
-    if(err) {
-      console.log('Error when getting mysql connection, attemptCounter: '+i);
-      if(typeof err=='object' && 'code' in err) {
-        console.log('err.code: '+err.code);
-        if(err.code=='PROTOCOL_CONNECTION_LOST' || err.code=='ECONNREFUSED' || err.code=='ECONNRESET'){
-          setTimeout(function(){ flow.next();}, 2000); yield;  continue;
-        } else { console.log('Can\'t handle: err.code: '+err.code); return [err]; }
-      }
-      else { console.log('No \'code\' in err'); return [err]; }
-    }
-  
-    connection.query(sql, Val, function(errT, resultsT, fieldsT) { err=errT; results=resultsT; fields=fieldsT; flow.next();}); yield;
-    connection.release();
-    if(err) {
-      console.log('Error when making mysql query, attemptCounter: '+i);
-      if(typeof err=='object' && 'code' in err) {
-        console.log('err.code: '+err.code); debugger
-        if(err.code=='PROTOCOL_CONNECTION_LOST' || err.code=='ECONNREFUSED'){
-          setTimeout(function(){ flow.next();}, 2000); yield;   continue;
-        } else { console.log('Can\'t handle: err.code: '+err.code); break; }
-      }
-      else { console.log('No \'code\' in err'); break; }
-    }
-    else {break;}
-  }
-  return [err, results, fields];
+//
+// Mysql
+//
+
+app.MyMySql=function(pool){ this.pool=pool; this.connection=null;  }
+MyMySql.prototype.getConnection=function*(flow){
+  var err, connection;      this.pool.getConnection(function(errT, connectionT) { err=errT; connection=connectionT; flow.next(); }); yield;   this.connection=connection; return [err];
 }
+MyMySql.prototype.startTransaction=function*(flow){
+  if(!this.connection) {var [err]=yield* this.getConnection(flow); if(err) return [err];}
+  var err;     this.connection.beginTransaction(function(errT) { err=errT; flow.next(); }); yield;   if(err) return [err];
+  this.transactionState='started';
+  return [null];
+}
+MyMySql.prototype.query=function*(flow, sql, Val){
+  if(!this.connection) {var [err]=yield* this.getConnection(flow); if(err) return [err];}
+  var err, results, fields;    this.connection.query(sql, Val, function (errT, resultsT, fieldsT) { err=errT; results=resultsT; fields=fieldsT; flow.next(); }); yield;   return [err, results, fields];
+}
+MyMySql.prototype.rollback=function*(flow){  this.connection.rollback(function() { flow.next(); }); yield;   }
+MyMySql.prototype.commit=function*(flow){
+  var err; this.connection.commit(function(errT){ err=errT; flow.next(); }); yield;   return [err];
+}
+MyMySql.prototype.rollbackNRelease=function*(flow){  this.connection.rollback(function() { flow.next(); }); yield;  this.connection.release(); }
+MyMySql.prototype.commitNRelease=function*(flow){
+  var err; this.connection.commit(function(errT){ err=errT; flow.next(); }); yield;  this.connection.release();  return [err];
+}
+MyMySql.prototype.fin=function(){   if(this.connection) { this.connection.destroy();this.connection=null;};  }
 
 //
 // Errors
@@ -129,7 +78,6 @@ app.checkIfLangIsValid=function(langShort){
 }
 
 app.getBrowserLang=function(req){
-"use strict"
   //echo _SERVER['accept-language']; exit;
   var Lang=[];
   if('accept-language' in req.headers) {

@@ -94,10 +94,10 @@ nDBConnectionLimit=10; nDBQueueLimit=100;
 nDBRetry=14;
 
 setUpMysqlPool=function(){
-  var uriObj=url.parse(uriDB); 
+  var uriObj=url.parse(uriDB);
   var StrMatch=RegExp('^(.*):(.*)$').exec(uriObj.auth);
   var nameDB=uriObj.pathname.substr(1);
-  mysqlPool  = mysql.createPool({
+  var mysqlPool  = mysql.createPool({
     connectionLimit : nDBConnectionLimit,
     host            : uriObj.host,
     user            : StrMatch[1],
@@ -106,7 +106,10 @@ setUpMysqlPool=function(){
     multipleStatements: true,
     waitForConnections:true,
     queueLimit:nDBQueueLimit,
+    //dateStrings:'date',
     flags:'-FOUND_ROWS'
   });
   mysqlPool.on('error',function(e){debugger});
+  return mysqlPool;
 }
+

@@ -1,28 +1,6 @@
 
 "use strict"
-
-//runIdIP=function(IP,idIP){ //check  idIP against the vendor-table and return diverse data
-//"use strict"
-  //var siteName=this.req.siteName, site=this.site, TableName=site.TableName, userTab=TableName.userTab;
-  //var nArg=arguments.length, callback=arguments[nArg-1];
-  //var userInfoFrDBUpd={};
-
-  //var Sql=[];
-  //Sql.push("SELECT * FROM "+userTab+" WHERE IP=? AND idIP=?;");
-  //var sql=Sql.join('\n'), Val=[IP, idIP];
-  //myQueryF(sql, Val, mysqlPool, function(err, results) {
-    //if(err) {callback(err);}
-    //else{
-      //var c=results.length;   userInfoFrDBUpd.customer=c==1?results[0]:0;   if(c>1){ console.log("count>1 ("+c+")"); }
-      //callback(null, userInfoFrDBUpd); 
-    //}
-  //});
-//}
-
-
-//runIdIP=function(IP,idIP){ //check  idIP against the vendor-table and return diverse data
 app.runIdIP=function*(flow, IP, idIP){ //check  idIP against the user-table and return diverse data
-"use strict"
   var siteName=this.req.siteName, site=this.site, TableName=site.TableName, userTab=TableName.userTab;
   var nArg=arguments.length, callback=arguments[nArg-1];
   var userInfoFrDBUpd={};
@@ -30,18 +8,10 @@ app.runIdIP=function*(flow, IP, idIP){ //check  idIP against the user-table and 
   var Sql=[];
   Sql.push("SELECT * FROM "+userTab+" WHERE IP=? AND idIP=?;");
   var sql=Sql.join('\n'), Val=[IP, idIP];
-  var [err, results]=yield* myQueryGen(flow, sql, Val, this.pool); if(err) return [err];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
   var c=results.length;   userInfoFrDBUpd.customer=c==1?results[0]:0;   if(c>1){ console.log("count>1 ("+c+")"); }
   return [null, userInfoFrDBUpd]; 
-  //myQueryF(sql, Val, mysqlPool, function(err, results) {
-    //if(err) {callback(err);}
-    //else{
-      //var c=results.length;   userInfoFrDBUpd.customer=c==1?results[0]:0;   if(c>1){ console.log("count>1 ("+c+")"); }
-      //callback(null, userInfoFrDBUpd); 
-    //}
-  //});
 }
-
 
 
 app.checkIfUserInfoFrIP=function*(){ 

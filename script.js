@@ -113,7 +113,7 @@ var flow=( function*(){
   require('./libReq.js'); 
 
 
-  setUpMysqlPool();
+  mysqlPool=setUpMysqlPool();
   SiteExtend();
 
 
@@ -236,35 +236,28 @@ var flow=( function*(){
       req.rootDomain=RootDomain[site.strRootDomain];
 
       var objReqRes={req:req, res:res};
+      objReqRes.myMySql=new MyMySql(mysqlPool);
+      if(levelMaintenance){res.outCode(503, "Down for maintenance, try again in a little while."); return;}
+      if(pathName=='/') { yield* reqIndex.call(objReqRes);   }
+      else if(pathName=='/'+leafBE){  var reqBE=new ReqBE(objReqRes);  yield* reqBE.go();    }
+      //else if(pathName=='/'+leafAssign){  var reqAssign=new ReqAssign(req, res);    reqAssign.go();  }
+      else if(regexpLib.test(pathName) || regexpLooseJS.test(pathName) || pathName=='/conversion.html'){   yield* reqStatic.call(objReqRes);   }
+      else if(pathName=='/'+leafLogin){   
+        var state=randomHash(); //CSRF protection
+        var objT={state:state, IP:objQS.IP, fun:objQS.fun, caller:objQS.caller||"index"};
+        //var redisVar=req.sessionID+'_Login', tmp=wrapRedisSendCommand('set',[redisVar,JSON.stringify(objT)]);     var tmp=wrapRedisSendCommand('expire',[redisVar,300]);
+        yield *setRedis(req.flow, req.sessionID+'_Login', objT, 300);
+        var uLoginBack=uDomain+"/"+leafLoginBack;
+        var uTmp="http://www.facebook.com/v3.2/dialog/oauth?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&state="+state+'&display=popup';
+        res.writeHead(302, {'Location': uTmp}); res.end();
+      }
+      else if(pathName=='/'+leafLoginBack){    var reqLoginBack=new ReqLoginBack(objReqRes);    yield* reqLoginBack.go();    }
+      else if(pathName=='/createDumpCommand'){  var str=createDumpCommand(); res.out200(str);     }
+      else if(pathName=='/debug'){    debugger;  res.end();}
+      else if(pathName=='/'+googleSiteVerification) res.end('google-site-verification: '+googleSiteVerification);
+      else {res.out404("404 Not Found\n"); return; }
+      objReqRes.myMySql.fin();
       
-      if(pathName.substr(0,5)=='/sql/'){
-        if(!boDbg && !boAllowSql){ res.out200('Set boAllowSql=1 (or boDbg=1) in the config.js-file');  return }
-        var reqSql=new ReqSql(req, res),  objSetupSql=new SetupSql();
-        req.pathNameWOPrefix=pathName.substr(5);
-        if(req.pathNameWOPrefix=='zip'){       reqSql.createZip(objSetupSql);     }
-        else {  reqSql.toBrowser(objSetupSql); }             
-      }
-      else {
-        if(levelMaintenance){res.outCode(503, "Down for maintenance, try again in a little while."); return;}
-        if(pathName=='/') { var reqIndex=new ReqIndex(req, res); reqIndex.go();   }
-        else if(pathName=='/'+leafBE){  var reqBE=new ReqBE(req, res);  yield* reqBE.go();    }
-        //else if(pathName=='/'+leafAssign){  var reqAssign=new ReqAssign(req, res);    reqAssign.go();  }
-        else if(regexpLib.test(pathName) || regexpLooseJS.test(pathName) || pathName=='/conversion.html'){   yield* reqStatic.call(objReqRes);   }
-        else if(pathName=='/'+leafLogin){   
-          var state=randomHash(); //CSRF protection
-          var objT={state:state, IP:objQS.IP, fun:objQS.fun, caller:objQS.caller||"index"};
-          //var redisVar=req.sessionID+'_Login', tmp=wrapRedisSendCommand('set',[redisVar,JSON.stringify(objT)]);     var tmp=wrapRedisSendCommand('expire',[redisVar,300]);
-          yield *setRedis(req.flow, req.sessionID+'_Login', objT, 300);
-          var uLoginBack=uDomain+"/"+leafLoginBack;
-          var uTmp="http://www.facebook.com/v3.2/dialog/oauth?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&state="+state+'&display=popup';
-          res.writeHead(302, {'Location': uTmp}); res.end();
-        }
-        else if(pathName=='/'+leafLoginBack){    var reqLoginBack=new ReqLoginBack(req, res);    yield* reqLoginBack.go();    }
-        else if(pathName=='/createDumpCommand'){  var str=createDumpCommand(); res.out200(str);     }
-        else if(pathName=='/debug'){    debugger;  res.end();}
-        else if(pathName=='/'+googleSiteVerification) res.end('google-site-verification: '+googleSiteVerification);
-        else {res.out404("404 Not Found\n"); return; }
-      }
      
     
     })(); req.flow.next();

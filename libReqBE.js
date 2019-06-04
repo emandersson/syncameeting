@@ -4,11 +4,16 @@
 /******************************************************************************
  * ReqBE
  ******************************************************************************/
-app.ReqBE=function(req, res){
-  this.req=req; this.res=res; this.site=req.site; this.Str=[]; this.pool=mysqlPool;
-  this.Out={GRet:{userInfoFrDBUpd:{}}, dataArr:[]}; this.GRet=this.Out.GRet; 
-}
+//app.ReqBE=function(req, res){
+  //this.req=req; this.res=res; this.site=req.site; this.Str=[]; this.pool=mysqlPool;
+  //this.Out={GRet:{userInfoFrDBUpd:{}}, dataArr:[]}; this.GRet=this.Out.GRet; 
+//}
 
+app.ReqBE=function(objReqRes){
+  Object.assign(this, objReqRes);
+  this.site=this.req.site
+  this.Str=[];  this.Out={GRet:{userInfoFrDBUpd:{}}, dataArr:[]};  this.GRet=this.Out.GRet; 
+}
 
 
 ReqBE.prototype.mes=function(str){ this.Str.push(str); }
@@ -46,15 +51,6 @@ ReqBE.prototype.specSetup=function*(inObj){
   //if(!checkIfUserInfoFrIP()) { callback(null,[Ou]); return } 
   var boOK=yield* checkIfUserInfoFrIP.call(this);  if(!boOK) { return [null, [Ou]];} 
   var tmp=this.sessionCache.userInfoFrIP, IP=tmp.IP, idIP=tmp.idIP;
-  //var fiber = Fiber.current; self.boDoExit=0;
-  //runIdIP.call(this, IP, idIP, Role, function(err,res){
-    //if(err){self.mesEO(err);  callback('exited'); self.boDoExit=1; return; }
-    //else{   
-      //extend(self.GRet.userInfoFrDBUpd,res);    extend(self.sessionCache.userInfoFrDB,res);
-    //}
-    //fiber.run();
-  //});
-  //Fiber.yield();  if(self.boDoExit==1) return;
 
   var [err, result]=yield* runIdIP.call(this, flow, IP, idIP);
   extend(this.GRet.userInfoFrDBUpd,result);    extend(this.sessionCache.userInfoFrDB,result);
@@ -85,7 +81,7 @@ ReqBE.prototype.logout=function*(inObj){
 }
 
 ReqBE.prototype.getSchedule=function*(inObj){
-  var req=this.req, site=req.site, siteName=req.siteName;
+  var req=this.req, flow=req.flow, site=req.site, siteName=req.siteName;
   var scheduleTab=site.TableName.scheduleTab;
   var Ou={}, Sql=[];
  
@@ -95,33 +91,23 @@ ReqBE.prototype.getSchedule=function*(inObj){
   FROM `+scheduleTab+` WHERE idSchedule=? AND codeSchedule=?;`); 
 
   var sql=Sql.join('\n'),   Val=[inObj.idSchedule, inObj.codeSchedule];
-  var [err, results]=yield* myQueryGen(req.flow, sql, Val, this.pool); if(err) return [err];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
   var c=results[1].length; if(c!=1) {  return [new ErrorClient(c+" rows found for that idSchedule/codeSchedule")];}
   Ou.row=results[1][0];  
   return [null, [Ou]];
-  
-  //myQueryF(sql, Val, mysqlPool, function(err, results) {
-    //if(err){self.mesEO(err); callback('exited');  return; } 
-    //else{
-      //var c=results[1].length; if(c!=1) { self.mesO(c+" rows found for that idSchedule/codeSchedule"); callback('exited');  return;}
-      //Ou.row=results[1][0]; 
-      //callback(null, [Ou]);
-    //}
-  //});
 }
 
 ReqBE.prototype.listSchedule=function*(inObj){
-  var req=this.req, site=req.site, siteName=req.siteName, sessionCache=this.sessionCache, {userTab, scheduleTab}=site.TableName;
+  var req=this.req, flow=req.flow, site=req.site, siteName=req.siteName, sessionCache=this.sessionCache, {userTab, scheduleTab}=site.TableName;
   var Ou={}, Sql=[];
   
   if(!isSetObject(sessionCache.userInfoFrIP)){ return [null,[Ou]]; }
 
   Ou.tab=[];
-  //Sql.push("SELECT idSchedule,codeSchedule,title,UNIX_TIMESTAMP(created) AS created,UNIX_TIMESTAMP(lastActivity) AS lastActivity FROM "+scheduleTab+" s JOIN "+userTab+" u ON s.idUser=u.idUser WHERE u.idUser=?;"); 
   Sql.push("SELECT idSchedule,codeSchedule,title,UNIX_TIMESTAMP(created) AS created,UNIX_TIMESTAMP(lastActivity) AS lastActivity FROM "+scheduleTab+" s JOIN "+userTab+" u ON s.idUser=u.idUser WHERE u.IP=? AND u.idIP=?;"); 
   
   var sql=Sql.join('\n'),   Val=[sessionCache.userInfoFrIP.IP, sessionCache.userInfoFrIP.idIP];  //Val=[idUser]; 
-  var [err, results]=yield* myQueryGen(req.flow, sql, Val, this.pool); if(err) return [err];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
   var n=results.length;
   for(var i=0;i<n;i++) {
     var row=results[i], len=listCol.KeyCol.length, rowN=Array(len);
@@ -129,22 +115,10 @@ ReqBE.prototype.listSchedule=function*(inObj){
     Ou.tab.push(rowN);
   }   
   return [null, [Ou,'listScheduleRet']];
-  //myQueryF(sql, Val, mysqlPool, function(err, results) {
-    //if(err){self.mesEO(err); callback('exited');  return; } 
-    //else{
-      //var n=results.length;
-      //for(var i=0;i<n;i++) {
-        //var row=results[i], len=listCol.KeyCol.length, rowN=Array(len);
-        //for(var j=0;j<len;j++){ var key=listCol.KeyCol[j]; rowN[j]=row[key]; }
-        //Ou.tab.push(rowN);
-      //}   
-      //callback(null, [Ou,'listScheduleRet']);
-    //}
-  //});
 }
 
 ReqBE.prototype.saveSchedule=function*(inObj){
-  var req=this.req, site=req.site, siteName=req.siteName, sessionCache=this.sessionCache;
+  var req=this.req, flow=req.flow, site=req.site, siteName=req.siteName, sessionCache=this.sessionCache;
   var scheduleTab=site.TableName.scheduleTab;
   var Ou={}, Sql=[];
 
@@ -168,7 +142,7 @@ ReqBE.prototype.saveSchedule=function*(inObj){
   Sql.push("CALL "+siteName+"save(?,?,?,?,?, ?,?,?,?,?,?,?,?,?);");
   //var Val=[]; Val.push(IP, idIP, lastActivity, idSchedule, codeSchedule, title, MTab, unit, firstDayOfWeek, dateAlwaysInWOne, start, vNames, hFilter, dFilter);
   var sql=Sql.join('\n'); 
-  var [err, results]=yield* myQueryGen(req.flow, sql, Val, this.pool); if(err) return [err];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
   var len=results.length; 
   if(len==2){
     var strTmp=results[0][0].mess; if(results[0][0].mess=='boOld') {strTmp="Someone else has changed the table, use reload to get the latest version";  } 
@@ -179,26 +153,11 @@ ReqBE.prototype.saveSchedule=function*(inObj){
   //rowA.lastActivity=
   copySome(Ou,rowA,['lastActivity', 'idSchedule', 'codeSchedule']);  
   return [null, [Ou,'saveScheduleRet']];
-  
-  //myQueryF(sql, Val, mysqlPool, function(err, results) {
-    //if(err){self.mesEO(err); callback('exited');  return; } 
-    //else{
-      //var len=results.length; 
-      //if(len==2){
-        //var strTmp=results[0][0].mess; if(results[0][0].mess=='boOld') {strTmp="Someone else has changed the table, use reload to get the latest version";  } 
-        //self.mesO(strTmp);  callback('exited');  return;
-      //}
-      //var c=results[0][0].nUpd; if(c!=1) { self.mesO("updated rows: "+c); callback('exited');  return; }
-      //var rowA=results[len-2][0];
-      //rowA.lastActivity=
-      //copySome(Ou,rowA,['lastActivity', 'idSchedule', 'codeSchedule']);  
-      //callback(null, [Ou,'saveScheduleRet']);
-    //}
-  //});
+
 }
 
 ReqBE.prototype.deleteSchedule=function*(inObj){
-  var req=this.req, site=req.site, siteName=req.siteName, sessionCache=this.sessionCache, {userTab, scheduleTab}=site.TableName;
+  var req=this.req, flow=req.flow, site=req.site, siteName=req.siteName, sessionCache=this.sessionCache, {userTab, scheduleTab}=site.TableName;
   var Ou={}, Sql=[];
 
   if(isSetObject(sessionCache.userInfoFrIP)){
@@ -208,20 +167,11 @@ ReqBE.prototype.deleteSchedule=function*(inObj){
     //var Val=[]; Val.push(idUser, lastActivity, idSchedule, codeSchedule, title, MTab, unit, firstDayOfWeek, dateAlwaysInWOne, start, vNames, hFilter, dFilter);
     var Val=[]; Val.push(IP, idIP, idSchedule);
     var sql=Sql.join('\n'); 
-    var [err, results]=yield* myQueryGen(req.flow, sql, Val, this.pool); if(err) return [err];
+    var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
     var len=results.length, rowLast=results[len-2];
     if('mess' in rowLast) { return [new ErrorClient(rowLast.mess)]; }
     var c=results[0][0].nDelete; if(c!=1) { return [new ErrorClient(c+" schedules deleted")]; }
     return [null, [Ou]];
-    //myQueryF(sql, Val, mysqlPool, function(err, results) {
-      //if(err){self.mesEO(err); callback('exited');  return; } 
-      //else{
-        //var len=results.length, rowLast=results[len-2];
-        //if('mess' in rowLast) { self.mesO(rowLast.mess); callback('exited');  return; }
-        //var c=results[0][0].nDelete; if(c!=1) { self.mesO(c+" schedules deleted"); callback('exited');  return; }
-        //callback(null, [Ou]);
-      //}
-    //});
   }  
 }
 
@@ -320,6 +270,7 @@ ReqBE.prototype.go=function*(){
     var strFun=beArr[k][0];
     if(in_array(strFun,allowed)) {
       var inObj=beArr[k][1],     tmpf; if(strFun in this) tmpf=this[strFun]; else tmpf=global[strFun];
+      if(typeof inObj=='undefined' || typeof inObj=='object') {} else {this.mesO('inObj should be of type object or undefined'); return;}
       var fT=[tmpf,inObj];   Func.push(fT);
     }
   }

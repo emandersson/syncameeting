@@ -1,8 +1,8 @@
-
+"use strict"
 window.onload=function(){
 
 
-function createColJIndexNamesObj(arrName){
+var createColJIndexNamesObj=function(arrName){
   var o={};
   for(var i=0;i<arrName.length;i++){ 
     var tmp="j"+arrName[i][0].toUpperCase()+arrName[i].substr(1);       o[tmp]=i;
@@ -11,7 +11,7 @@ function createColJIndexNamesObj(arrName){
 }
 
 
-function createChildInd(arrI){
+var createChildInd=function(arrI){
   var arrO=[]; for(var i=0;i<arrI.length;i++){  var itmp=arrI[i];  arrO[itmp]=i;  }  return arrO;
 }
 
@@ -75,7 +75,7 @@ Date.prototype.getWeek = function (firstDayOfWeek=0,dateAlwaysInWOne=1,boRewrite
 
 
 
-function popUpExtend($el){
+var popUpExtend=function($el){
   $el.openPop=function() {
     $messageText.detach(); $el.append($messageText);
     var winW=$(window).width(),winH=$(window).height();
@@ -123,7 +123,7 @@ function popUpExtend($el){
 }
 
 
-function toggleButtonExtend($el){
+var toggleButtonExtend=function($el){
   $el.setStat=function(bo1){
     if(bo1==0) {$el.css(o0);} else {$el.css(o1);} 
     $el.attr({boOn:bo1});
@@ -142,7 +142,7 @@ function toggleButtonExtend($el){
  *******************************************************************************************************************/
  
  
-function messExtend($el){
+var messExtend=function($el){
   //$el.resetMess=function(){ $el.html(''); clearTimeout(messTimer); }
   $el.resetMess=function(time){ 
     if(typeof time =='number')     messTimer=setTimeout('resetMess()',time*1000);
@@ -167,7 +167,7 @@ function messExtend($el){
  *******************************************************************************************************************/
 
 
-function menuRadioExtend($el,arrDivs){
+var menuRadioExtend=function($el,arrDivs){
   var clickFunc=function(e){
     var $el1=$(this), i=$el1.index();   //$div=$divs.eq(i);
     if(i in arrDivs)  $divs=arrDivs[i]; else $divs=[];
@@ -225,7 +225,7 @@ function menuRadioExtend($el,arrDivs){
   return $el;
 }
   
-function menuCurtainExtend($el,arrDivs,boWhite,func){
+var menuCurtainExtend=function($el,arrDivs,boWhite,func){
   $el.scrollToMe=function(){    
     var tmp=$el.offset().top;
     $('body,html').animate({scrollTop:$el.offset().top},500);  }  
@@ -269,11 +269,11 @@ function menuCurtainExtend($el,arrDivs,boWhite,func){
   return $el;
 }
 
-loginReturnList=function(){  //   after 'loginbutt'->'loginScreen' or 'delete'->'loginScreen'
-  if(isSetObject(userInfoFrIP)) {var vec=[['listSchedule',1]]; majax(oAJAX,vec); }
+var loginReturnList=function(){  //   after 'loginbutt'->'loginScreen' or 'delete'->'loginScreen'
+  if(isSetObject(userInfoFrIP)) {var vec=[['listSchedule']]; majax(oAJAX,vec); }
 }
 
-loginReturn=function(userInfoFrIPT,userInfoFrDBT,fun,strMess,CSRFCodeT){
+app.loginReturn=function(userInfoFrIPT,userInfoFrDBT,fun,strMess,CSRFCodeT){
   CSRFCode=CSRFCodeT;
 
   var tmp=['idIP','IP','nameIP','nickIP']; userInfoFrIP={};
@@ -408,7 +408,7 @@ var loginInfoExtend=function($el){
   var $logoutButt=$('<button>').text(langHtml.loginInfo.logoutButt).css({'float':'right','font-size':'90%'});
   $logoutButt.click(function(){ 
     userInfoFrIP={}; 
-    var vec=[['logout',1]];   majax(oAJAX,vec); 
+    var vec=[['logout']];   majax(oAJAX,vec); 
     //idSchedule=null; codeSchedule=''; lastActivity=0;
     return false;
   });
@@ -429,7 +429,7 @@ var toggleSpecialistButts=function(boIn){
 }
 
 
-function scheduleExtend($el){
+var scheduleExtend=function($el){
   var dayStart=function(tu){
     var tj=new Date(tu*1000),st=Number(tj.setHours(0,0,0,0))/1000; return st; }
   var weekStart = function(tu) {
@@ -460,12 +460,12 @@ function scheduleExtend($el){
         var boRewriteWeekNames=0; if($el.dateAlwaysInWOne==4) {boRewriteWeekNames=1;}
         var tH=t.getHours(), tN=arrDayName[t.getDay()], tW=t.getWeek($el.firstDayOfWeek,$el.dateAlwaysInWOne,boRewriteWeekNames), tD=t.getDate(), 
             tM=arrMonthName[t.getMonth()], tY=t.getFullYear();
-        if(tH!==tHl) {$hH=$('<th>').html(tH); $rH.append($hH);cSpanH=1;} else {cSpanH++;$hH.attr({colspan:cSpanH});}
-        if(tN!==tNl) {$hN=$('<th>').html(tN); $rN.append($hN);cSpanN=1;} else {cSpanN++;$hN.attr({colspan:cSpanN});}
-        if(tW!==tWl) {$hW=$('<th>').html(tW); $rW.append($hW);cSpanW=1;} else {cSpanW++;$hW.attr({colspan:cSpanW});}
-        if(tD!==tDl) {$hD=$('<th>').html(tD); $rD.append($hD);cSpanD=1;} else {cSpanD++;$hD.attr({colspan:cSpanD});}
-        if(tM!==tMl) {$hM=$('<th>').html(tM); $rM.append($hM);cSpanM=1;} else {cSpanM++;$hM.attr({colspan:cSpanM});}
-        if(tY!==tYl) {$hY=$('<th>').html(tY); $rY.append($hY);cSpanY=1;} else {cSpanY++;$hY.attr({colspan:cSpanY});}
+        if(tH!==tHl) {var $hH=$('<th>').html(tH); $rH.append($hH);cSpanH=1;} else {cSpanH++;$hH.attr({colspan:cSpanH});}
+        if(tN!==tNl) {var $hN=$('<th>').html(tN); $rN.append($hN);cSpanN=1;} else {cSpanN++;$hN.attr({colspan:cSpanN});}
+        if(tW!==tWl) {var $hW=$('<th>').html(tW); $rW.append($hW);cSpanW=1;} else {cSpanW++;$hW.attr({colspan:cSpanW});}
+        if(tD!==tDl) {var $hD=$('<th>').html(tD); $rD.append($hD);cSpanD=1;} else {cSpanD++;$hD.attr({colspan:cSpanD});}
+        if(tM!==tMl) {var $hM=$('<th>').html(tM); $rM.append($hM);cSpanM=1;} else {cSpanM++;$hM.attr({colspan:cSpanM});}
+        if(tY!==tYl) {var $hY=$('<th>').html(tY); $rY.append($hY);cSpanY=1;} else {cSpanY++;$hY.attr({colspan:cSpanY});}
         tHl=tH;tNl=tN;tWl=tW;tDl=tD;tMl=tM;tYl=tY;
       }
       if($el.unit=='d') $rH='';
@@ -623,7 +623,7 @@ function scheduleExtend($el){
       o.hFilter=JSON.stringify($sch.hFilter);
       o.dFilter=JSON.stringify($sch.dFilter);
       setMess('saving',10,1);
-      var vec=[['saveSchedule',o],['listSchedule',1]]; 
+      var vec=[['saveSchedule',o],['listSchedule']]; 
       majax(oAJAX,vec);  
     }
     //else $messPop.setup("You have to login first").openFunc();
@@ -688,9 +688,9 @@ function scheduleExtend($el){
   for(var i=0;i<7;i++){$el.dFilter[i]=0;  if(i>=1 && i<=5) $el.dFilter[i]=1;}
 
   $el.MTab=[];$el.vNames=[];
-  for(i=0;i<5;i++){
+  for(var i=0;i<5;i++){
     $el.vNames[i]=""; $el.MTab[i]=[];
-    for(j=0;j<14;j++){ $el.MTab[i][j]=enumVoid; }
+    for(var j=0;j<14;j++){ $el.MTab[i][j]=enumVoid; }
   }
   var tmp=new Date();
   $el.start=$el.calcStart(tmp/1000,$el.unit);
@@ -703,12 +703,12 @@ function scheduleExtend($el){
 // End of scheduleExtend
 ///////////////////////////////////////////////////////////////////////////////
 
-loginButtExtend=function($el){
+var loginButtExtend=function($el){
   $el.append('Login').click(function(){loginReturn2=loginReturnList; $loginDiv.openFunc();});
   return $el;
 }
 
-function unitSelectorExtend($el){
+var unitSelectorExtend=function($el){
   $el.setUpButtStat=function(){
     //var $b=$el.children("input[value='"+$sch.unit+"']"); $b.attr({checked:1});
     //$sch.setUnit($sch.unit);
@@ -730,7 +730,7 @@ function unitSelectorExtend($el){
   return $el;
 }
 
-function lectureFilterExtend($el){
+var lectureFilterExtend=function($el){
   $el.setUpSel=function(){
     var iSel=0;
     for(var i=0;i<nLec;i++){
@@ -740,7 +740,7 @@ function lectureFilterExtend($el){
     $o.attr('selected', 1);
   }
   var nLec=10;
-  $sel=$('<select>');
+  var $sel=$('<select>');
   for(var i=0;i<nLec;i++){  
     var $opt=$("<option>").val(i+1).html(i+1);
     $sel.append($opt);
@@ -759,7 +759,7 @@ function lectureFilterExtend($el){
   return $el;
 }
 
-function hourFilterExtend($el){
+var hourFilterExtend=function($el){
   $el.setUpButtStat=function(){
     for(var i=0;i<24;i++){  var $b=$el.children('button:eq('+i+')');  if($sch.hFilter[i]==1) $b.css($el.colOn); else $b.css($el.colOff);  }
   }
@@ -781,7 +781,7 @@ function hourFilterExtend($el){
   return $el;
 }
 
-function dayFilterExtend($el){
+var dayFilterExtend=function($el){
   $el.setUpButtStat=function(){
     for(var i=0;i<7;i++){  var $b=$el.children('button:eq('+i+')');  if($sch.dFilter[i]==1) $b.css($el.colOn); else $b.css($el.colOff);  }
   }
@@ -801,7 +801,7 @@ function dayFilterExtend($el){
 
 
 
-function firstDayOfWeekExtend($el){
+var firstDayOfWeekExtend=function($el){
   $el.setUp=function(i){
     var $o=$el.find('option:eq('+i+')'); 
     $o.attr('selected', 1);
@@ -818,7 +818,7 @@ function firstDayOfWeekExtend($el){
   return $el;
 }
 
-function dateAlwaysInWOneExtend($el){
+var dateAlwaysInWOneExtend=function($el){
   $el.setUp=function(i){
     var $o=$el.find(":radio[value='"+i+"']"); 
     $o.attr('checked', true);
@@ -837,7 +837,7 @@ function dateAlwaysInWOneExtend($el){
   return $el;
 }
 
-function titleInpExtend($el){
+var titleInpExtend=function($el){
   $el.$inp=$('<input type=text placeholder=Title>').keyup( function(e){ $title.text($el.$inp.val().trim()); } );
   $el.append($el.$inp);
   return $el;
@@ -872,7 +872,7 @@ var deleteConfirmPopExtend=function($el){
   var $el=popUpExtend($el);
   $el.setup=function(idScheduleRowT){idScheduleRow=idScheduleRowT;}
   $el.$yes=$('<button>').html('Yes').click(function(){
-    var vec=[['deleteSchedule',{idSchedule:idScheduleRow}],['listSchedule',1]];   majax(oAJAX,vec);
+    var vec=[['deleteSchedule',{idSchedule:idScheduleRow}],['listSchedule']];   majax(oAJAX,vec);
     if(idScheduleRow===idSchedule) { idSchedule=''; codeSchedule='';}
     $el.closePop();
   });
@@ -883,7 +883,7 @@ var deleteConfirmPopExtend=function($el){
   return $el;
 }
 
-scheduleListExtend=function($el){
+var scheduleListExtend=function($el){
   var makeDeleteFunc=function(i){return function(){ 
     if(isSetObject(userInfoFrIP)){
       $deleteConfirmPop.setup(i); $deleteConfirmPop.openPop(); $deleteConfirmPop.$yes.focus();
@@ -902,7 +902,7 @@ scheduleListExtend=function($el){
       var idSchedule=tab[i][jIdSchedule], tmp2=tab[i][jCodeSchedule];
       var tmp=uFE+'?idSchedule='+idSchedule+'&codeSchedule='+tmp2;
       var $alink=$('<a>').attr({href:tmp}).append(tmp);
-      var $del=$('<img>').attr({src:uDelete}).click(makeDeleteFunc(idSchedule))
+      var $del=$('<img>').attr({src:uDelete}).css({cursor:'pointer', zoom:2}).click(makeDeleteFunc(idSchedule))
                 .mouseover(function(){$(this).attr({src:uDelete1})}).mouseout(function(){$(this).attr({src:uDelete})});
       var $tr=$('<tr>').append($('<td>').append($del), $('<td>').append($alink), $('<td>').append(tab[i][jTitle]), $('<td>').append(swedDate(tab[i][jCreated])),
         $('<td>').append(swedDate(tab[i][jLastActivity]))   ); 
@@ -933,7 +933,6 @@ scheduleListExtend=function($el){
 
 
 var majax=function(oAJAX,vec){  // Each argument of vec is an array: [serverSideFunc, serverSideFuncArg, returnFunc]
-"use strict"
   var makeRetF=function(vecT){ return function(data,textStatus,jqXHR){ 
       var dataArr=data.dataArr;  // Each argument of dataArr is an array, either [argument] or [argument,altFunc]
       delete data.dataArr;
@@ -957,14 +956,14 @@ var majax=function(oAJAX,vec){  // Each argument of vec is an array: [serverSide
 }
 
 
-beRet=function(data,textStatus,jqXHR){
+var beRet=function(data,textStatus,jqXHR){
   if(typeof jqXHR!='undefined') var tmp=jqXHR.responseText;
   for(var key in data){
     window[key].call(this,data[key]); 
   }
 }
 
-GRet=function(data){
+app.GRet=function(data){
   var tmp;
   //tmp=data.strMessageText;   if(typeof tmp!="undefined") setMess(tmp);
   tmp=data.strMessageText;   if(typeof tmp!="undefined") {setMess(tmp); if(/error/i.test(tmp)) navigator.vibrate(100);}
@@ -980,246 +979,234 @@ GRet=function(data){
 
 
 
-window.setup1=function(){
 
-  window.elHtml=document.documentElement;  window.elBody=document.body;
-  window.$html=$(document.documentElement);
-  window.$body=$('body');
-  $body.css({height:'100%'});
-  $html.css({height:'100%'});
-  var browser={brand:'bla'};
-
-  window.boTouch = Boolean('ontouchstart' in document.documentElement);  //boTouch=1;
-
-  var ua=navigator.userAgent, uaLC = ua.toLowerCase(); //alert(ua);
-  window.boAndroid = uaLC.indexOf("android") > -1;
-  window.boFF = uaLC.indexOf("firefox") > -1; 
-  //var boIE = uaLC.indexOf("msie") > -1; 
-  var versionIE=detectIE();
-  window.boIE=versionIE>0; if(boIE) browser.brand='msie';
-
-  window.boChrome= /chrome/i.test(uaLC);
-  window.boIOS= /iPhone|iPad|iPod/i.test(uaLC);
-  window.boEpiphany=/epiphany/.test(uaLC);    if(boEpiphany && !boAndroid) boTouch=false;  // Ugly workaround
-
-  window.boOpera=RegExp('OPR\\/').test(ua); if(boOpera) boChrome=false; //alert(ua);
-
-  if(boTouch){
-    if(boIOS) {
-      var tmp={"-webkit-overflow-scrolling":"touch", "overflow":"hidden", height:'100%', overflow:'hidden'};
-      elBody.css(tmp);  elHtml.css(tmp);
-    } 
-  }
-
-  assignSiteSpecific();
-
-  var oVersion=getItem('version');
-  if(version!==oVersion) boNewVersion=1; else boNewVersion=0; 
-  setItem('version',version);
-
-  userInfoFrDB=jQuery.extend({}, specialistDefault);
-  //userInfoFrIP=jQuery.extend({}, specialistDefault);
-  userInfoFrIP=null;
-
-  CSRFCode='';
-
-
-  strScheme='http'+(boTLS?'s':'');    strSchemeLong=strScheme+'://';    uSite=strSchemeLong+site.wwwSite;     uCommon=strSchemeLong+wwwCommon;       uBE=uSite+"/"+leafBE;
-
-  uBE=uSite+"/"+leafBE;
-  uFE=uSite;
-  wseImageFolder='/'+flImageFolder+'/';
-  uImageFolder=uCommon+wseImageFolder;
-
-  uImCloseW=uImageFolder+'triangleRightW.png';
-  uImOpenW=uImageFolder+'triangleDownW.png';
-  uImCloseB=uImageFolder+'triangleRight.png';
-  uImOpenB=uImageFolder+'triangleDown.png';
-
-  uHelpFile=uImageFolder+'help.png';
-  uVipp0=uImageFolder+'vipp0.png';
-  uVipp1=uImageFolder+'vipp1.png';
-  uGoogle=uImageFolder+'google.jpg';
-  uFB=uImageFolder+'fb.png';
-  uFBFacebook=uImageFolder+'fbFacebook.png';
-  //uIncreasing=uImageFolder+'increasing.png';
-  //uDecreasing=uImageFolder+'decreasing.png';
-  uOpenId=uImageFolder+'openid-inputicon.gif';
-  uOID22=uImageFolder+'oid22.png';
-  uBusy=uImageFolder+'busy.gif';
-  uDelete=uImageFolder+'delete.png';
-  uDelete1=uImageFolder+'delete1.png';
-   
-
-  langClientFunc(); 
-
-  var tmp=createColJIndexNamesObj(listCol.KeyCol); $.extend(listCol,tmp); $.extend(window,tmp);
-  listCol.sel=createChildInd(listCol.backSel);   
-  listCol.vis=createChildInd(listCol.backVis);   
-
-  colMenuBOn='#616161'; colMenuBOff='#aaa';
-
-
-
-
-  $imgBusy=$('<img>').attr({src:uBusy});
-  $messageText=messExtend($("<span>"));  window.setMess=$messageText.setMess;  window.resetMess=$messageText.resetMess;   $body.append($messageText);
-  $messageText.css({font:'courier'});
-
-  $imgHelp=$('<img>').attr({src:uHelpFile}).css({'vertical-align':'-0.4em'});
-
-
-  arrDayName=['Su','M','Tu','W','Th','F','Sa'];
-  arrMonthName=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-   
-
-
-
-
-  $body.css({padding:'0 0 0 0'});
-  $body.css({margin:'0 0 0 0'});
-
-
-
-  $.ajaxSetup({
-    url: uBE,
-    global: false,
-    type: "POST",
-    //dataType:'json',
-    contentType:'application/json',
-    processData:false,
-    success: beRet,
-    //success: function(data){alert('ss');},
-    error: function(jqXHR, textStatus, errorThrown){
-      setMess('responseText: '+jqXHR.responseText+', textStatus: '+' '+textStatus+', errorThrown: '+errorThrown);     throw 'bla';
-    }
-  });
-
-
-  //oAJAXSponList={url:uSponListBE,crossDomain:true,type: "GET",dataType:'jsonp', processData:true, success: beReth, jsonpCallback: 'beRet'};
-  oAJAX={url:uBE,type: "POST",dataType:'json', processData:false,success: beRet};
-
-
-
-  var maxWidth='800px';
-
-  colButtAllOn='#9f9', colButtOn='#0f0', colButtOff='#ddd', colFiltOn='#bfb', colFiltOff='#ddd', colFontOn='#000', colFontOff='#777', colActive='#65c1ff', colStapleOn='#f70', colStapleOff='#bbb';
-
-  $body.css({visibility:'visible',background:'#fff'});
-  $body.css({display:'flex','flex-direction':'column'});
-  
-  //$loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0px 0px 0px 0px',height:'0.9em'});
-  $loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0em 0em 0em 0em','font-size':'75%'});
-    
-  $H1=$('h1:eq(0)');
-
-
-  $titleInp=titleInpExtend($('<div>'));
-
-  $unitSelector=unitSelectorExtend($('<div>'));   
-  $dayFilter=dayFilterExtend($('<div>'));  
-  $lectureFilter=lectureFilterExtend($('<div>'));  
-  $hourFilter=hourFilterExtend($('<div>')); 
-  //$boxWeek=boxWeekExtend($('<div>'));  
-  $firstDayOfWeek=firstDayOfWeekExtend($('<div>'));  
-  $dateAlwaysInWOne=dateAlwaysInWOneExtend($('<div>'));  
-
-
-  var makeFunc=function(nStChange,nColsChange){return function(){
-    var vTimeN=$sch.calcVTime('','','',nStChange,nColsChange);  $sch.convertMTab('',vTimeN);  $sch.vTime=vTimeN;  $sch.M2Table();
-  };};
-  $buttStEarlier=$('<button>').html('&lt;').click(makeFunc(-1,0));
-  $buttStLater=$('<button>').html('&gt;').click(makeFunc(1,0));
-  $buttDecCols=$('<button>').html('-').click(makeFunc(0,-1));
-  $buttIncCols=$('<button>').html('+').click(makeFunc(0,1));
-
-  // ☰≡
-  $settingsHead=$('<span>').html('Settings:');
-  $settingsHead=$('<button>').html('≡').on('click',function(){$settingsDiv.toggle();}).css({margin:'0 1em'});
-  $settingsDiv=settingsDivExtend($('<div>'));  $settingsDiv.addClass('content');
-  $settingsDiv.css({position:'fixed', 'background-color':'#ccc', border:'1px solid', width:'calc(100% - 3em)', 'overflow-y':'scroll', 'max-height':'calc(100% - 10em)', 'box-sizing':'border-box', 'z-index':1, 'max-width':'calc('+maxWidth+' - 3em'});
-  //$settingsDiv.css({flex:'1 1 auto', 'overflow-y':'scroll', 'box-sizing':'border-box', 'z-index':1, 'max-height':'calc(100vh - 9em)'});
-  if(boTouch) $settingsDiv.css({'max-height':'calc(100% - 4em)'});
-  $settingsDiv.hide();
-
-  $settingsDivOuter=menuCurtainExtend($('<div>').append($settingsHead,$settingsDiv),[],0).css({margin:'0.5em auto .5em auto'});
-  //$settingsDivW=$('<div>').append($settingsHead,$settingsDiv).css({display:'flex', 'flex-direction':'row', 'z-index':1, 'align-items':'flex-start', position:'absolute'});
-  //$settingsDivOuter=$('<div>').append($settingsDivW).css({margin:'0.5em auto 1em auto', position:'relative'});
-
-  
-  
-  $sch=scheduleExtend($('<table>'));
-  $unitSelector.setUpButtStat();  $hourFilter.setUpButtStat();  $dayFilter.setUpButtStat();
-
-
-  $title=$('<div>').css({'font-weight':'bold','font-size':'150%'}); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
-
-  $deleteConfirmPop=deleteConfirmPopExtend($('<div>'));
-  $loginDiv=loginDivExtend($('<div>'));   $loginDiv.setHead('Need an identity'); loginReturn2=loginReturnList;
-  $scheduleList=scheduleListExtend($('<div>')).hide().css({margin:'0.2em auto 0.6em'});
-
-  $schW=$('<div>').append($sch, $scheduleList).css({flex:'1 1 auto', 'overflow-y':'scroll', height:'100%'});
-  
-  $messPop=messPopExtend($('<div>'));
-
-  var $saveButton=$('<button>').html('Save').click($sch.save).css({'margin-right':'0.5em'});
-  var $spanRed=$('<span>').css({"background":"#f00",border:'black solid 1px'}).html('&nbsp;&nbsp;&nbsp;');
-  var $spanBusy=$('<span>').css({'float':"right"}).append($spanRed,' = Busy'); 
-  $loginButt=loginButtExtend($('<button>'));
-
-  //var $saveDiv=$('<div>').append('<br>',$saveButton, ' ',$loginButt,$spanBusy).css({margin:'0.2em auto 0.6em'});
-
-
-  var strTmp='https://emagnusandersson.com/syncAMeeting'; 
-  var $aLink=$('<a>').attr({href:strTmp}).append('More info').css({'font-size':'100%','font-weight':'bold', flex:'1 1 auto'}); 
-  $iframe=$('<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsyncameeting.eu01.aws.af.cm&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=false&amp;font&amp;colorscheme=light&amp;action=like&amp;height=21&amp;appId=511686352189575" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;" allowTransparency="true"></iframe>');
-  $iframe.css({'vertical-align':'middle','margin-left':'1em'});
-  $divFoot=$('<div>').append($saveButton, $loginButt, $aLink, $spanBusy).css({});  
-  $divFoot.css({bottom:'0px', display:'flex', 'flex-direction':'row', width:'100%', padding:'1em', 'text-align':'center', 'border-top':'1px solid', background:'white'}); 
-  
-
-  //$mainDivs=$([]).push($loginInfo).push($H1).push($settingsDivOuter).push($title).push($schW).push($saveDiv).push($scheduleList).push($divFoot);
-  $mainDivs=$([]).push($loginInfo, $H1, $settingsDivOuter, $title, $schW, $divFoot); //, $saveDiv, $scheduleList
-  $body.append($mainDivs);
-
-
-  if(boTouch) $H1.remove();
-  $mainDivs.css({'text-align':'left',background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'});
-  //$mainDivs.css({'text-align':'left',background:'#fff','max-width':w+'px','margin-left':'auto','margin-right':'auto'});
-
-  $H1.css({'text-align':'center',background:'#ff0',border:'solid 1px',color:'black','font-size':'2em','font-weight':'bold',
-      padding:'0.6em 0.2em 0.6em 0.2em',margin:'0.2em auto 0.2em auto'}); 
-  $divFoot.css({'text-align':'center'});
-  $title.css({'text-align':'center',background:'lightgrey'});
-
-  //$sch.css({'width':'auto','text-align':''});
-
-  lastActivity=0;
-  //firstAJAXCall();
-
-  var vec=[['specSetup',1],['listSchedule',1]];
-  if(idSchedule!==null) vec.push(['getSchedule',{idSchedule:idSchedule,codeSchedule:codeSchedule}, $sch.getScheduleRet]);
-  majax(oAJAX,vec);
-  setMess('Fetching data ',0,true);
-
-  toggleSpecialistButts(0);
-
-
-  //if(boIOS) $(window).bind('orientationchange', orientationChangeMy);
-  //else $(window).bind('resize', orientationChangeMy);
-  //orientationChangeMy();
-
+window.elHtml=document.documentElement;  window.elBody=document.body;
+window.$html=$(document.documentElement);
+window.$body=$('body');
+$body.css({height:'100%'});
+$html.css({height:'100%'});
+var browser={brand:'bla'};
+
+window.boTouch = Boolean('ontouchstart' in document.documentElement);  //boTouch=1;
+
+var ua=navigator.userAgent, uaLC = ua.toLowerCase(); //alert(ua);
+window.boAndroid = uaLC.indexOf("android") > -1;
+window.boFF = uaLC.indexOf("firefox") > -1; 
+//var boIE = uaLC.indexOf("msie") > -1; 
+var versionIE=detectIE();
+window.boIE=versionIE>0; if(boIE) browser.brand='msie';
+
+window.boChrome= /chrome/i.test(uaLC);
+window.boIOS= /iPhone|iPad|iPod/i.test(uaLC);
+window.boEpiphany=/epiphany/.test(uaLC);    if(boEpiphany && !boAndroid) boTouch=false;  // Ugly workaround
+
+window.boOpera=RegExp('OPR\\/').test(ua); if(boOpera) boChrome=false; //alert(ua);
+
+if(boTouch){
+  if(boIOS) {
+    var tmp={"-webkit-overflow-scrolling":"touch", "overflow":"hidden", height:'100%', overflow:'hidden'};
+    elBody.css(tmp);  elHtml.css(tmp);
+  } 
 }
-setup1();
 
-/*******************************************************************************************************************
- * Document ready function
- *******************************************************************************************************************/
+assignSiteSpecific();
 
-//window.onload=function(){
-   //setup1();
-//};
+var oVersion=getItem('version'); app.boNewVersion=version!==oVersion;        setItem('version',version);
+
+var userInfoFrDB=jQuery.extend({}, specialistDefault);
+//userInfoFrIP=jQuery.extend({}, specialistDefault);
+var userInfoFrIP=null;
+
+var CSRFCode='';
+
+
+var strScheme='http'+(boTLS?'s':''),    strSchemeLong=strScheme+'://',    uSite=strSchemeLong+site.wwwSite,     uCommon=strSchemeLong+wwwCommon,       uBE=uSite+"/"+leafBE;
+
+var uBE=uSite+"/"+leafBE;
+var uFE=uSite;
+var wseImageFolder='/'+flImageFolder+'/';
+var uImageFolder=uCommon+wseImageFolder;
+
+var uImCloseW=uImageFolder+'triangleRightW.png';
+var uImOpenW=uImageFolder+'triangleDownW.png';
+var uImCloseB=uImageFolder+'triangleRight.png';
+var uImOpenB=uImageFolder+'triangleDown.png';
+
+var uHelpFile=uImageFolder+'help.png';
+var uVipp0=uImageFolder+'vipp0.png';
+var uVipp1=uImageFolder+'vipp1.png';
+var uGoogle=uImageFolder+'google.jpg';
+var uFB=uImageFolder+'fb.png';
+var uFBFacebook=uImageFolder+'fbFacebook.png';
+//uIncreasing=uImageFolder+'increasing.png';
+//uDecreasing=uImageFolder+'decreasing.png';
+var uOpenId=uImageFolder+'openid-inputicon.gif';
+var uOID22=uImageFolder+'oid22.png';
+var uBusy=uImageFolder+'busy.gif';
+var uDelete=uImageFolder+'delete.png';
+var uDelete1=uImageFolder+'delete1.png';
+ 
+
+langClientFunc(); 
+
+var tmp=createColJIndexNamesObj(listCol.KeyCol); $.extend(listCol,tmp); $.extend(window,tmp);
+listCol.sel=createChildInd(listCol.backSel);   
+listCol.vis=createChildInd(listCol.backVis);   
+
+var colMenuBOn='#616161', colMenuBOff='#aaa';
+
+
+
+
+var $imgBusy=$('<img>').attr({src:uBusy});
+var $messageText=messExtend($("<span>"));  window.setMess=$messageText.setMess;  window.resetMess=$messageText.resetMess;   $body.append($messageText);
+$messageText.css({font:'courier'});
+
+var $imgHelp=$('<img>').attr({src:uHelpFile}).css({'vertical-align':'-0.4em'});
+
+
+var arrDayName=['Su','M','Tu','W','Th','F','Sa'];
+var arrMonthName=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+ 
+
+
+
+
+$body.css({padding:'0 0 0 0'});
+$body.css({margin:'0 0 0 0'});
+
+
+
+$.ajaxSetup({
+  url: uBE,
+  global: false,
+  type: "POST",
+  //dataType:'json',
+  contentType:'application/json',
+  processData:false,
+  success: beRet,
+  //success: function(data){alert('ss');},
+  error: function(jqXHR, textStatus, errorThrown){
+    setMess('responseText: '+jqXHR.responseText+', textStatus: '+' '+textStatus+', errorThrown: '+errorThrown);     throw 'bla';
+  }
+});
+
+
+//oAJAXSponList={url:uSponListBE,crossDomain:true,type: "GET",dataType:'jsonp', processData:true, success: beReth, jsonpCallback: 'beRet'};
+var oAJAX={url:uBE,type: "POST",dataType:'json', processData:false,success: beRet};
+
+
+
+var maxWidth='800px';
+
+var colButtAllOn='#9f9', colButtOn='#0f0', colButtOff='#ddd', colFiltOn='#bfb', colFiltOff='#ddd', colFontOn='#000', colFontOff='#777', colActive='#65c1ff', colStapleOn='#f70', colStapleOff='#bbb';
+
+$body.css({visibility:'visible',background:'#fff'});
+$body.css({display:'flex','flex-direction':'column'});
+
+//$loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0px 0px 0px 0px',height:'0.9em'});
+var $loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0em 0em 0em 0em','font-size':'75%'});
+  
+var $H1=$('h1:eq(0)');
+
+
+var $titleInp=titleInpExtend($('<div>'));
+
+var $unitSelector=unitSelectorExtend($('<div>'));   
+var $dayFilter=dayFilterExtend($('<div>'));  
+var $lectureFilter=lectureFilterExtend($('<div>'));  
+var $hourFilter=hourFilterExtend($('<div>')); 
+//$boxWeek=boxWeekExtend($('<div>'));  
+var $firstDayOfWeek=firstDayOfWeekExtend($('<div>'));  
+var $dateAlwaysInWOne=dateAlwaysInWOneExtend($('<div>'));  
+
+
+var makeFunc=function(nStChange,nColsChange){return function(){
+  var vTimeN=$sch.calcVTime('','','',nStChange,nColsChange);  $sch.convertMTab('',vTimeN);  $sch.vTime=vTimeN;  $sch.M2Table();
+};};
+var $buttStEarlier=$('<button>').html('&lt;').click(makeFunc(-1,0));
+var $buttStLater=$('<button>').html('&gt;').click(makeFunc(1,0));
+var $buttDecCols=$('<button>').html('-').click(makeFunc(0,-1));
+var $buttIncCols=$('<button>').html('+').click(makeFunc(0,1));
+
+// ☰≡
+var $settingsHead=$('<span>').html('Settings:');
+var $settingsHead=$('<button>').html('≡').on('click',function(){$settingsDiv.toggle();}).css({margin:'0 1em'});
+var $settingsDiv=settingsDivExtend($('<div>'));  $settingsDiv.addClass('content');
+$settingsDiv.css({position:'fixed', 'background-color':'#ccc', border:'1px solid', width:'calc(100% - 3em)', 'overflow-y':'scroll', 'max-height':'calc(100% - 10em)', 'box-sizing':'border-box', 'z-index':1, 'max-width':'calc('+maxWidth+' - 3em'});
+//$settingsDiv.css({flex:'1 1 auto', 'overflow-y':'scroll', 'box-sizing':'border-box', 'z-index':1, 'max-height':'calc(100vh - 9em)'});
+if(boTouch) $settingsDiv.css({'max-height':'calc(100% - 4em)'});
+$settingsDiv.hide();
+
+var $settingsDivOuter=menuCurtainExtend($('<div>').append($settingsHead,$settingsDiv),[],0).css({margin:'0.5em auto .5em auto'});
+//$settingsDivW=$('<div>').append($settingsHead,$settingsDiv).css({display:'flex', 'flex-direction':'row', 'z-index':1, 'align-items':'flex-start', position:'absolute'});
+//$settingsDivOuter=$('<div>').append($settingsDivW).css({margin:'0.5em auto 1em auto', position:'relative'});
+
+
+
+var $sch=scheduleExtend($('<table>'));
+$unitSelector.setUpButtStat();  $hourFilter.setUpButtStat();  $dayFilter.setUpButtStat();
+
+
+var $title=$('<div>').css({'font-weight':'bold','font-size':'150%'}); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
+
+var $deleteConfirmPop=deleteConfirmPopExtend($('<div>'));
+var $loginDiv=loginDivExtend($('<div>'));   $loginDiv.setHead('Need an identity'); var loginReturn2=loginReturnList;
+var $scheduleList=scheduleListExtend($('<div>')).hide().css({margin:'0.2em auto 0.6em'});
+
+var $schW=$('<div>').append($sch, $scheduleList).css({flex:'1 1 auto', 'overflow-y':'scroll', height:'100%'});
+
+var $messPop=messPopExtend($('<div>'));
+
+var $saveButton=$('<button>').html('Save').click($sch.save).css({'margin-right':'0.5em'});
+var $spanRed=$('<span>').css({"background":"#f00",border:'black solid 1px'}).html('&nbsp;&nbsp;&nbsp;');
+var $spanBusy=$('<span>').css({'float':"right"}).append($spanRed,' = Busy'); 
+var $loginButt=loginButtExtend($('<button>'));
+
+//var $saveDiv=$('<div>').append('<br>',$saveButton, ' ',$loginButt,$spanBusy).css({margin:'0.2em auto 0.6em'});
+
+
+var strTmp='https://emagnusandersson.com/syncAMeeting'; 
+var $aLink=$('<a>').attr({href:strTmp}).append('More info').css({'font-size':'100%','font-weight':'bold', flex:'1 1 auto'}); 
+var $iframe=$('<iframe src="//www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsyncameeting.eu01.aws.af.cm&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=false&amp;font&amp;colorscheme=light&amp;action=like&amp;height=21&amp;appId=511686352189575" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;" allowTransparency="true"></iframe>');
+$iframe.css({'vertical-align':'middle','margin-left':'1em'});
+var $divFoot=$('<div>').append($saveButton, $loginButt, $aLink, $spanBusy).css({});  
+$divFoot.css({bottom:'0px', display:'flex', 'flex-direction':'row', width:'100%', padding:'1em', 'text-align':'center', 'border-top':'1px solid', background:'white'}); 
+
+
+//$mainDivs=$([]).push($loginInfo).push($H1).push($settingsDivOuter).push($title).push($schW).push($saveDiv).push($scheduleList).push($divFoot);
+var $mainDivs=$([]).push($loginInfo, $H1, $settingsDivOuter, $title, $schW, $divFoot); //, $saveDiv, $scheduleList
+$body.append($mainDivs);
+
+
+if(boTouch) $H1.remove();
+$mainDivs.css({'text-align':'left',background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'});
+//$mainDivs.css({'text-align':'left',background:'#fff','max-width':w+'px','margin-left':'auto','margin-right':'auto'});
+
+$H1.css({'text-align':'center',background:'#ff0',border:'solid 1px',color:'black','font-size':'2em','font-weight':'bold',
+    padding:'0.6em 0.2em 0.6em 0.2em',margin:'0.2em auto 0.2em auto'}); 
+$divFoot.css({'text-align':'center'});
+$title.css({'text-align':'center',background:'lightgrey'});
+
+//$sch.css({'width':'auto','text-align':''});
+
+var lastActivity=0;
+//firstAJAXCall();
+
+var vec=[['specSetup'],['listSchedule']];
+if(idSchedule!==null) vec.push(['getSchedule',{idSchedule:idSchedule,codeSchedule:codeSchedule}, $sch.getScheduleRet]);
+majax(oAJAX,vec);
+setMess('Fetching data ',0,true);
+
+toggleSpecialistButts(0);
+
+
+//if(boIOS) $(window).bind('orientationchange', orientationChangeMy);
+//else $(window).bind('resize', orientationChangeMy);
+//orientationChangeMy();
+
+
 
 }
 

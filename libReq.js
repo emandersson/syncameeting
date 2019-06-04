@@ -27,18 +27,11 @@ var mesEOMakeJSON=function(glue){ return function(err){
 
 
 /******************************************************************************
- * ReqIndex
+ * reqIndex
  ******************************************************************************/
-app.ReqIndex=function(req, res){
-  this.req=req; this.res=res; this.site=req.site; this.Str=[]; this.pool=mysqlPool;
-}
-app.ReqIndex.prototype.mes=function(str){ this.Str.push(str); }
-app.ReqIndex.prototype.mesO=mesOMake('\n');
-app.ReqIndex.prototype.mesEO=mesEOMake(', ');
-
-
-app.ReqIndex.prototype.go=function() {
-  var self=this, req=this.req, res=this.res;
+app.reqIndex=function*() {
+  var req=this.req, res=this.res; 
+  var flow=req.flow;
   var siteName=req.siteName, site=req.site, uSite=req.uSite, wwwSite=req.wwwSite;
   var objQS=req.objQS;
   var idSchedule=null; if('idSchedule' in objQS) { idSchedule=objQS.idSchedule;}
@@ -230,10 +223,15 @@ app.reqStatic=function*() {
 /******************************************************************************
  * ReqLoginBack
  ******************************************************************************/
-app.ReqLoginBack=function(req, res){
-  this.req=req; this.res=res; this.site=req.site; this.mess=[]; this.Str=[]; this.pool=mysqlPool;
-}
+//app.ReqLoginBack=function(req, res){
+  //this.req=req; this.res=res; this.site=req.site; this.mess=[]; this.Str=[]; this.pool=mysqlPool;
+//}
 
+app.ReqLoginBack=function(objReqRes){
+  Object.assign(this, objReqRes);
+  this.site=this.req.site;
+  this.mess=[];  this.Str=[];
+}
 ReqLoginBack.prototype.go=function*(){
   var self=this, req=this.req, flow=req.flow, res=this.res, sessionID=req.sessionID, objQS=req.objQS;
 
@@ -272,13 +270,7 @@ ReqLoginBack.prototype.go=function*(){
   if(req.objQS.state==this.sessionLogin.state) {
     var uToGetToken = "https://graph.facebook.com/v3.2/oauth/access_token?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&client_secret="+req.rootDomain.fb.secret+"&code="+code;
     var reqStream=requestMod.get(uToGetToken); 
-    //var semCB=0, semY=0, boDoExit=0, buf; 
-    //var myConcat=concat(function(bufT){
-      //buf=bufT;
-      //if(semY)fiber.run(); semCB=1;
-    //});
-    //reqStream.pipe(myConcat);
-    //if(!semCB){semY=1; Fiber.yield();}
+
     var semCB=0, semY=0,  buf, myConcat=concat(function(bufT){ buf=bufT; if(semY) flow.next(); semCB=1;  });    reqStream.pipe(myConcat);    if(!semCB){semY=1; yield}
     try{ var params=JSON.parse(buf.toString()); }catch(e){ console.log(e); res.out500('Error in JSON.parse, '+e); return; }
     self.access_token=params.access_token;
@@ -289,15 +281,7 @@ ReqLoginBack.prototype.go=function*(){
   }
 
 
-  //var  semCB=0, semY=0, boDoExit=0; 
-  //this.getGraph(function(err,res){
-    //if(err){  boDoExit=1; res.out500(err);  }
-    //if(semY)fiber.run(); semCB=1;
-  //});
-  //if(!semCB){semY=1; Fiber.yield();}  if(boDoExit==1) return;
   var [err, res]=yield* this.getGraph();  if(err){ res.out500(err); return; }
-
-
 
 
     // interpretGraph
@@ -339,12 +323,6 @@ ReqLoginBack.prototype.getGraph=function*(){
     // With the access_token you can get the data about the user
   var uGraph = "https://graph.facebook.com/v3.2/me?access_token="+this.access_token+'&fields=id,name';  //  ,verified
   var reqStream=requestMod.get(uGraph);
-  //var myConcat=concat(function(buf){
-    //var objGraph=JSON.parse(buf.toString());
-    //self.objGraph=objGraph;
-    //callback(null,'');
-  //});
-  //reqStream.pipe(myConcat);
   var buf, myConcat=concat(function(bufT){ buf=bufT; flow.next();  });    reqStream.pipe(myConcat);    yield;
   var objGraph=JSON.parse(buf.toString());
   this.objGraph=objGraph;
@@ -594,18 +572,9 @@ app.SetupSqlT.prototype.doQuery=function*(flow, strCreateSql){
   var SqlA=this[strMeth](SiteName, boDropOnly); 
   var strDelim=';', sql=SqlA.join(strDelim+'\n')+strDelim, Val=[], boDoExit=0;  
   
-  var [err, results]=yield* myQueryGen(flow, sql, Val, mysqlPool);
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val);
   var tmp=createMessTextOfMultQuery(SqlA, err, results);  console.log(tmp); 
   if(err) debugger; 
-  
-  //var fiber = Fiber.current;
-  //myQueryF(sql, Val, mysqlPool, function(err, results){ 
-    //var tmp=createMessTextOfMultQuery(SqlA, err, results);  console.log(tmp); 
-    //if(err){            boDoExit=1;  debugger;         } 
-    //fiber.run();
-  //});
-  //Fiber.yield();  if(boDoExit==1) return;
-
 }
 
 
