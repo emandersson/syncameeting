@@ -142,7 +142,7 @@ var flow=( function*(){
 
 
   CacheUri=new CacheUriT();
-  StrFilePreCache=['lib.js', 'libClient.js', 'client.js', 'stylesheets/style.css','lang/en.js'];
+  StrFilePreCache=['lib.js', 'libClient.js', 'client.js', 'stylesheets/resetMeyer.css', 'stylesheets/style.css','lang/en.js'];
   for(var i=0;i<StrFilePreCache.length;i++) {
     var filename=StrFilePreCache[i];
     var [err]=yield* readFileToCache(flow, filename); if(err) {  console.log(err.message);  return;}

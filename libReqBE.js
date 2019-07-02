@@ -222,7 +222,7 @@ ReqBE.prototype.go=function*(){
     
   try{ var beArr=JSON.parse(jsonInput); }catch(e){ console.log(e); res.out500('Error in JSON.parse, '+e); return; }
   
-  if(!req.boCookieStrictOK) {this.mesEO('Strict cookie not set');  return;   }
+  if(!req.boCookieStrictOK) {this.mesEO(new Error('Strict cookie not set'));  return;   }
   
 
     // Remove the beArr[i][0] values that are not functions

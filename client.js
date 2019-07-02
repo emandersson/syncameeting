@@ -400,7 +400,7 @@ var loginInfoExtend=function($el){
       $el.show();
     }else {
       //$el.css({visibility:'hidden'});
-      $el.hide();  
+      $el.hide();
     } 
   }
   var $spanName=$('<span>'), $spanKind=$('<span>'); 
@@ -475,11 +475,14 @@ var scheduleExtend=function($el){
     var makeKeyUpFunc=function(i){return function(){ $el.vNames[i]=this.value;}}
     if($el.MTab!=null && $el.vNames!=null) {
       for(var i=0;i<$el.MTab.length;i++) {
-        var $img=$('<img>').attr({src:uDelete}).mouseover(function(){$(this).attr({src:uDelete1})}).mouseout(function(){$(this).attr({src:uDelete})})
-              .click(makeRemovePersonFunc(i)).css({cursor:'pointer', zoom:2});
+        //var $del=$('<img>').attr({src:uDelete}).mouseover(function(){$(this).attr({src:uDelete1})}).mouseout(function(){$(this).attr({src:uDelete})})
+              //.click(makeRemovePersonFunc(i)).css({cursor:'pointer', zoom:2});
+        
+        var $del=$('<div>').append('✖').css(cssDeleteButtonMouseOut).css({cursor:'pointer', 'font-size':'1.5em', display:'inline-block'}).click(makeRemovePersonFunc(i))
+                .mouseover(function(){$(this).css(cssDeleteButtonMouseOver);}).mouseout(function(){$(this).css(cssDeleteButtonMouseOut);});
         var $input=$('<input type=text placeholder=Name>').val($el.vNames[i]).keyup(makeKeyUpFunc(i));
         
-        var $row=$('<tr>'),$td=$('<td>').append('&nbsp;',$img,' ',$input).css({'white-space':'nowrap'});
+        var $row=$('<tr>'),$td=$('<td>').append('&nbsp;',$del,' ',$input).css({'white-space':'nowrap'});
         $row.append($td); 
         for(var j=0;j<$el.MTab[i].length;j++) { 
           var tmp,eTmp=$el.MTab[i][j];
@@ -617,7 +620,8 @@ var scheduleExtend=function($el){
       var o={unit:$el.unit, firstDayOfWeek:$el.firstDayOfWeek, dateAlwaysInWOne:$el.dateAlwaysInWOne, start:$el.start, lastActivity:lastActivity};
       if(idSchedule!==null) o.idSchedule=idSchedule;
       if(codeSchedule!=='') o.codeSchedule=codeSchedule;
-      o.title=$titleInp.$inp.val().trim();
+      //o.title=$titleInp.$inp.val().trim();
+      o.title=$inpTitle.val().trim();
       o.MTab=JSON.stringify($sch.MTab);
       o.vNames=JSON.stringify($sch.vNames);
       o.hFilter=JSON.stringify($sch.hFilter);
@@ -655,7 +659,8 @@ var scheduleExtend=function($el){
       //IP=row.IP;   idIP=row.idIP;
       lastActivity=row.lastActivity;
 
-      $title.html(row.title);   $titleInp.$inp.val(row.title);
+      //$title.html(row.title);   $titleInp.$inp.val(row.title);
+      $inpTitle.val(row.title);
       $el.MTab=row.MTab;
       $el.unit=row.unit;
       $el.firstDayOfWeek=row.firstDayOfWeek;
@@ -726,7 +731,8 @@ var unitSelectorExtend=function($el){
   var $buttH=$('<input>').attr({type:'radio',name:'unit'}).val('h').change(makeFunc('h'));
   var $buttD=$('<input>').attr({type:'radio',name:'unit'}).val('d').change(makeFunc('d'));
   var $buttW=$('<input>').attr({type:'radio',name:'unit'}).val('w').change(makeFunc('w'));
-  $el.append('Calender resolution: ',$buttL,'lectures, ',$buttH,'hours, ',$buttD,'days, ',$buttW,'weeks');
+  var $divLabel=$('<div>').append('Calender resolution:').css({'font-weight':'bold'});
+  $el.append($divLabel ,$buttL,'lectures, ',$buttH,'hours, ',$buttD,'days, ',$buttW,'weeks');
   return $el;
 }
 
@@ -754,7 +760,8 @@ var lectureFilterExtend=function($el){
     $sch.convertMTab('',vTimeN);   $sch.vTime=vTimeN;   $sch.M2Table();
     $el.setUpSel();
   });
-  $el.append("Number of lectures per day: ",$sel);
+  var $spanLabel=$('<span>').append('Number of lectures per day: ').css({'font-weight':'bold'});
+  $el.append($spanLabel,$sel);
   
   return $el;
 }
@@ -775,7 +782,9 @@ var hourFilterExtend=function($el){
     $el.setUpButtStat();
     
   };  } 
-  $el.append('Only include certain hours:<br>');
+  //$el.append('Only include certain hours:<br>');
+  var $spanLabel=$('<span>').append('Only include certain hours: ').css({'font-weight':'bold'});
+  $el.append($spanLabel);
   for(var i=0;i<24;i++){ var $but=$('<button>').html(i).click(makeFunc(i));  $el.append($but);}
   
   return $el;
@@ -794,7 +803,8 @@ var dayFilterExtend=function($el){
     $sch.convertMTab('',vTimeN);   $sch.vTime=vTimeN;   $sch.M2Table();
   };  } 
   $el.colOn={background:'#4f4'};$el.colOff={background:'#eee'};
-  $el.append('Mark the week days to be included: ');
+  var $divLabel=$('<div>').append('Mark the week days to be included: ').css({'font-weight':'bold'});
+  $el.append($divLabel);
   for(var i=0;i<7;i++){ var $but=$('<button>').html(arrDayName[i]).click(makeFunc(i));  $el.append($but,'&nbsp;&nbsp;');}
   return $el;
 }
@@ -814,7 +824,8 @@ var firstDayOfWeekExtend=function($el){
     var $opt=$('<option>').val(i).html(arrWeekDays[i]); $sel.append($opt);
   }
   $sel.children('option:eq(1)').attr('selected', 1);
-  $el.append("First day of the week: ",$sel);
+  var $spanLabel=$('<span>').append('First day of the week: ').css({'font-weight':'bold'});
+  $el.append($spanLabel,$sel);
   return $el;
 }
 
@@ -829,25 +840,36 @@ var dateAlwaysInWOneExtend=function($el){
   var $r0=$('<input>').attr({type:'radio',name:'dateAlwaysInWOne'}).val(1).change(makeFunc(1));
   var $r1=$('<input>').attr({type:'radio',name:'dateAlwaysInWOne'}).val(4).change(makeFunc(4));
   
+  
+  var $spanLabel=$('<span>').append('Week numbering: ').css({'font-weight':'bold'});
   var $d0=$('<div>').append($r0,"Week #1 is the week that contains Jan 1 (used in America, Asia ...)");
-  var $d1=$('<div>').append($r1,"Week #1 is the first week that mainly lies in the new year (the week that contains Jan 4) (ISO8601, used in some EU countries)");
+  var $d1=$('<div>').append($r1,"Week #1 is the first week that mainly lies in the new year (the week that contains Jan 4) (used in some EU countries)");
   var $tmp=$d0.push($d1).css({margin:'1em 0'});
-  $el.append($tmp);
+  $el.append($spanLabel, $tmp);
   $r1.attr('checked',1);
   return $el;
 }
 
-var titleInpExtend=function($el){
-  $el.$inp=$('<input type=text placeholder=Title>').keyup( function(e){ $title.text($el.$inp.val().trim()); } );
-  $el.append($el.$inp);
-  return $el;
-}
+//var titleInpExtend=function($el){
+  //$el.$inp=$('<input type=text placeholder=Title>').keyup( function(e){ $title.text($el.$inp.val().trim()); } );
+  //$el.append($el.$inp);
+  //return $el;
+//}
 
 var settingsDivExtend=function($el){
-  var $peroidDiv=$('<div>').append('Change start of period: ',$buttStEarlier,'&nbsp;&nbsp;',$buttStLater,' Change length of period: ',$buttDecCols,'&nbsp;&nbsp;',$buttIncCols);
+  var $spanLabelStart=$('<span>').append('Change start of period: ').css({'font-weight':'bold'});
+  var $spanLabelLength=$('<span>').append('Change length of period: ').css({'font-weight':'bold'});
+  var $divStart=$('<div>').append($spanLabelStart, $buttStEarlier, '&nbsp;&nbsp;', $buttStLater).css({margin:'1em 0'});
+  var $divLength=$('<div>').append($spanLabelLength, $buttDecCols, '&nbsp;&nbsp;', $buttIncCols);
+  var $peroidDiv=$('<div>').append($divStart, $divLength);
 
-  var $tmp=$([]).add($titleInp).add($unitSelector).add($dayFilter).add($firstDayOfWeek).add($dateAlwaysInWOne).add($lectureFilter).add($hourFilter).add($peroidDiv);
-  $tmp.css({'margin-left':'1em','margin-right':'1em','margin-top':'1em','margin-bottom':'1em'});
+  var $butClose=$('<button>').html('✖').on('click',function(){$settingsDiv.hide(); $divBlanket.hide();}).css({margin:'0em', position:'fixed', 'font-size':'1.5em', width:'1.5em', height:'1.5em'}); //, 'border-radius':'50%', border:'solid 1px grey'
+  var $divClose=$('<div>').append($butClose).css({ display:'flex', 'flex-direction':'row-reverse'});
+
+  var $tmp=$([]).add($divClose).add($unitSelector).add($dayFilter).add($firstDayOfWeek).add($dateAlwaysInWOne).add($lectureFilter).add($hourFilter).add($peroidDiv);  // .add($titleInp)
+  $tmp.css({'margin':'1em'});
+  //$titleInp.css({'margin-top':'0em'});
+  $divClose.css({'margin':'0em'});
   $el.append($tmp);
   return $el;
 }
@@ -902,8 +924,8 @@ var scheduleListExtend=function($el){
       var idSchedule=tab[i][jIdSchedule], tmp2=tab[i][jCodeSchedule];
       var tmp=uFE+'?idSchedule='+idSchedule+'&codeSchedule='+tmp2;
       var $alink=$('<a>').attr({href:tmp}).append(tmp);
-      var $del=$('<img>').attr({src:uDelete}).css({cursor:'pointer', zoom:2}).click(makeDeleteFunc(idSchedule))
-                .mouseover(function(){$(this).attr({src:uDelete1})}).mouseout(function(){$(this).attr({src:uDelete})});
+      var $del=$('<div>').append('✖').css(cssDeleteButtonMouseOut).css({cursor:'pointer', 'font-size':'1.5em'}).click(makeDeleteFunc(idSchedule))
+                .mouseover(function(){$(this).css(cssDeleteButtonMouseOver);}).mouseout(function(){$(this).css(cssDeleteButtonMouseOut);});
       var $tr=$('<tr>').append($('<td>').append($del), $('<td>').append($alink), $('<td>').append(tab[i][jTitle]), $('<td>').append(swedDate(tab[i][jCreated])),
         $('<td>').append(swedDate(tab[i][jLastActivity]))   ); 
       $tbody.append($tr);
@@ -923,6 +945,8 @@ var scheduleListExtend=function($el){
 
 
 
+var cssDeleteButtonMouseOver={color:'white', 'text-shadow':'-2px 0 red, 2px 0 red, 0 -2px red, 0 2px red, -1px -1px red, 1px 1px red, -1px 1px red, 1px -1px red'};
+var cssDeleteButtonMouseOut={color:'grey', 'text-shadow':''};
 
 
 
@@ -1111,7 +1135,7 @@ var $loginInfo=loginInfoExtend($('<div>'));  $loginInfo.css({padding:'0em 0em 0e
 var $H1=$('h1:eq(0)');
 
 
-var $titleInp=titleInpExtend($('<div>'));
+//var $titleInp=titleInpExtend($('<div>')).css({margin:'0em 1em 1em 1em'});
 
 var $unitSelector=unitSelectorExtend($('<div>'));   
 var $dayFilter=dayFilterExtend($('<div>'));  
@@ -1131,31 +1155,38 @@ var $buttDecCols=$('<button>').html('-').click(makeFunc(0,-1));
 var $buttIncCols=$('<button>').html('+').click(makeFunc(0,1));
 
 // ☰≡
-var $settingsHead=$('<span>').html('Settings:');
-var $settingsHead=$('<button>').html('≡').on('click',function(){$settingsDiv.toggle();}).css({margin:'0 1em'});
+var $settingsButton=$('<button>').html('⚙').on('click',function(){$settingsDiv.toggle(); $divBlanket.toggle();}).css({margin:'0 1em'}); //, position:'fixed', top:'1em'
 var $settingsDiv=settingsDivExtend($('<div>'));  $settingsDiv.addClass('content');
-$settingsDiv.css({position:'fixed', 'background-color':'#ccc', border:'1px solid', width:'calc(100% - 3em)', 'overflow-y':'scroll', 'max-height':'calc(100% - 10em)', 'box-sizing':'border-box', 'z-index':1, 'max-width':'calc('+maxWidth+' - 3em'});
+var $divBlanket=$('<div>').css({position:'fixed', 'background-color':'#000', width:'100%', 'z-index':1, opacity:'0.5', height:'100%', top:'0px', left:'0px'}).hide().on('click',function(){$settingsDiv.hide(); $divBlanket.hide();});
+$settingsDiv.css({position:'fixed', 'background-color':'#ccc', border:'1px solid', width:'calc(100% - 3em)', 'overflow-y':'scroll', 'box-sizing':'border-box', 'z-index':2, opacity:'0.92', 'max-height':'100%', top:'0px', 'max-width':'360px', height:'100%'}); //, 'max-height':'calc(100% - 10em)' , 'max-width':'calc('+maxWidth+' - 3em'
 //$settingsDiv.css({flex:'1 1 auto', 'overflow-y':'scroll', 'box-sizing':'border-box', 'z-index':1, 'max-height':'calc(100vh - 9em)'});
-if(boTouch) $settingsDiv.css({'max-height':'calc(100% - 4em)'});
+//if(boTouch) $settingsDiv.css({'max-height':'calc(100% - 4em)'});
 $settingsDiv.hide();
 
-var $settingsDivOuter=menuCurtainExtend($('<div>').append($settingsHead,$settingsDiv),[],0).css({margin:'0.5em auto .5em auto'});
-//$settingsDivW=$('<div>').append($settingsHead,$settingsDiv).css({display:'flex', 'flex-direction':'row', 'z-index':1, 'align-items':'flex-start', position:'absolute'});
+//var $settingsDivOuter=menuCurtainExtend($('<div>').append($settingsButton,$settingsDiv),[],0).css({margin:'0em auto'});
+var $settingsDivOuter=$('<div>').append($divBlanket, $settingsDiv).css({margin:'0em auto'});
+//$settingsDivW=$('<div>').append($settingsButton,$settingsDiv).css({display:'flex', 'flex-direction':'row', 'z-index':1, 'align-items':'flex-start', position:'absolute'});
 //$settingsDivOuter=$('<div>').append($settingsDivW).css({margin:'0.5em auto 1em auto', position:'relative'});
 
-
+$H1.remove();
+var $divH1=$('<div>').append($H1.html()).css({flex:'1 1 auto', 'letter-spacing':'0.15em', 'text-shadow':'-1px 0 grey, 1px 0 grey, 0 -1px grey, 0 1px grey, -1px -1px grey, 1px 1px grey, -1px 1px grey, 1px -1px grey'});
+var $divSpace=$('<div>').css({flex:'0 0 4em'});
+$settingsButton.css({flex:'0 0 auto'});
+var $divHW=$('<div>').append($settingsButton, $divH1, $divSpace).css({display:'flex', 'justify-content':'space-between', 'align-items':'center'});
 
 var $sch=scheduleExtend($('<table>'));
 $unitSelector.setUpButtStat();  $hourFilter.setUpButtStat();  $dayFilter.setUpButtStat();
 
 
-var $title=$('<div>').css({'font-weight':'bold','font-size':'150%'}); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
+//var $title=$('<div>').css({'font-weight':'bold','font-size':'150%'}); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
+var $inpTitle=$('<input type=text placeholder=Title>').css({'font-weight':'bold','font-size':'130%', 'text-align':'center', 'max-width':'100%'});//.keyup( function(e){ var $inp=$(this); $inp.val($inp.val().trim()); } ); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
+var $divTitle=$('<div>').css({'text-align':'center'}).append($inpTitle); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
 
 var $deleteConfirmPop=deleteConfirmPopExtend($('<div>'));
 var $loginDiv=loginDivExtend($('<div>'));   $loginDiv.setHead('Need an identity'); var loginReturn2=loginReturnList;
 var $scheduleList=scheduleListExtend($('<div>')).hide().css({margin:'0.2em auto 0.6em'});
 
-var $schW=$('<div>').append($sch, $scheduleList).css({flex:'1 1 auto', 'overflow-y':'scroll', height:'100%'});
+var $schW=$('<div>').append($divTitle, $sch, $scheduleList).css({flex:'1 1 auto', 'overflow-y':'scroll', height:'100%'});
 
 var $messPop=messPopExtend($('<div>'));
 
@@ -1176,18 +1207,18 @@ $divFoot.css({bottom:'0px', display:'flex', 'flex-direction':'row', width:'100%'
 
 
 //$mainDivs=$([]).push($loginInfo).push($H1).push($settingsDivOuter).push($title).push($schW).push($saveDiv).push($scheduleList).push($divFoot);
-var $mainDivs=$([]).push($loginInfo, $H1, $settingsDivOuter, $title, $schW, $divFoot); //, $saveDiv, $scheduleList
+var $mainDivs=$([]).push($loginInfo, $divHW, $settingsDivOuter, $schW, $divFoot); //, $saveDiv, $scheduleList
 $body.append($mainDivs);
 
 
-if(boTouch) $H1.remove();
+//if(boTouch) $H1.remove();
 $mainDivs.css({'text-align':'left',background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'});
 //$mainDivs.css({'text-align':'left',background:'#fff','max-width':w+'px','margin-left':'auto','margin-right':'auto'});
 
-$H1.css({'text-align':'center',background:'#ff0',border:'solid 1px',color:'black','font-size':'2em','font-weight':'bold',
-    padding:'0.6em 0.2em 0.6em 0.2em',margin:'0.2em auto 0.2em auto'}); 
+$divH1.css({'text-align':'center',color:'black','font-size':'130%','font-weight':'bold',
+    padding:'0.3em 0.2em',margin:'0.2em auto 0.2em auto'}); //,background:'#ff0',border:'solid 1px'
 $divFoot.css({'text-align':'center'});
-$title.css({'text-align':'center',background:'lightgrey'});
+$divTitle.css({'text-align':'center'}); //,background:'lightgrey'
 
 //$sch.css({'width':'auto','text-align':''});
 

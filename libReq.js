@@ -73,6 +73,7 @@ app.reqIndex=function*() {
 
   var strTitle='Free meeting synchronizer';
   var strH1=wwwSite;
+  var strH1='syncAMeeting';
   var strDescription='Free tool for synchronizing a meeting without any particular user commitment';
   var strKeywords='scheduler meeting-synchronizer free schedule synchronize sync calender meeting week day hour lecture';
   var strSummary="";
@@ -132,6 +133,7 @@ app.reqIndex=function*() {
     // Use normal vTmp on iOS (since I don't have any method of disabling cache on iOS devices (nor any debugging interface))
   var boDbgT=boDbg; if(boIOS) boDbgT=0;
     // Include stylesheets
+  var pathTmp='/stylesheets/resetMeyer.css', vTmp=CacheUri[pathTmp].eTag; if(boDbgT) vTmp=0;    Str.push('<link rel="stylesheet" href="'+uCommon+pathTmp+'?v='+vTmp+'" type="text/css">');
   var pathTmp='/stylesheets/style.css', vTmp=CacheUri[pathTmp].eTag; if(boDbgT) vTmp=0;    Str.push('<link rel="stylesheet" href="'+uCommon+pathTmp+'?v='+vTmp+'" type="text/css">');
 
     // Include site specific JS-files
@@ -190,18 +192,20 @@ codeSchedule=`+JSON.stringify(codeSchedule)+`;
  * reqStatic
  ******************************************************************************/
 app.reqStatic=function*() {
-  var req=this.req, res=this.res, flow=req.flow; this.Str=[];
-  var objQS=req.objQS, siteName=req.siteName, pathName=req.pathName;
+  var req=this.req, res=this.res;
+  this.Str=[];
+  var siteName=req.siteName;
+  var pathName=req.pathName;
 
   var eTagIn=getETag(req.headers);
-  var keyCache=pathName; if(pathName==='/'+leafSiteSpecific) keyCache=siteName+keyCache; 
+  var keyCache=pathName; if(pathName==='/'+leafSiteSpecific) keyCache=siteName+keyCache;
   if(!(keyCache in CacheUri)){
     var filename=pathName.substr(1);
-    var [err]=yield *readFileToCache(flow, filename);
+    var [err]=yield* readFileToCache(req.flow, filename);
     if(err) {
       if(err.code=='ENOENT') {res.out404(); return;}
       if('host' in req.headers) console.error('Faulty request from'+req.headers.host);
-      if('Referer' in req.headers) console.error(req.headers.Referer);
+      if('Referer' in req.headers) console.error('Referer:'+req.headers.Referer);
       res.out500(err); return;
     }
   }
