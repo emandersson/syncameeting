@@ -151,6 +151,7 @@ var flow=( function*(){
   
   if(boDbg){
     fs.watch('.', makeWatchCB('.', ['client.js', 'libClient.js']) );
+    fs.watch('stylesheets', makeWatchCB('stylesheets', ['style.css']) );
   }
 
   handler=function(req, res){
