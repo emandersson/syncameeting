@@ -261,3 +261,11 @@ app.closest2Val=function(v, val){
   return [v[best_i],best_i];
 }
 
+//
+// Data Formatting
+//
+
+app.deserialize=function(serializedJavascript){
+  return eval('(' + serializedJavascript + ')');
+}
+

@@ -15,12 +15,10 @@
     "minimist": "^1.2.0",
     "mysql": "^2.17.1",
     "node-zip": "1.1.x",
-    "npm-check-updates": "^3.1.13",
     "redis": "^2.8.0",
     "request": "^2.88.0",
-    "serialize-javascript": "^1.7.0",
-    "streamify-string": "^1.0.1",
-    "through": "^2.3.8"
+    "serialize-javascript": "^2.1.1",
+    "streamify-string": "^1.0.1"
   },
   "devDependencies": {},
   "private": true,
