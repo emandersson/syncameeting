@@ -7,7 +7,7 @@ mysql =  require('mysql');
 util =  require('util');
 concat = require('concat-stream');
 requestMod = require('request');
-through = require('through')
+//through = require('through')
 querystring = require('querystring');
 //async = require('async');
 formidable = require("formidable");
@@ -116,19 +116,15 @@ var flow=( function*(){
   mysqlPool=setUpMysqlPool();
   SiteExtend();
 
-
-    // Do db-query if --sql XXXX was set in the argument
-  //if(typeof argv.sql!='undefined'){
-    //var tTmp=new Date().getTime();
-    //var objSetupSql=new SetupSql(); objSetupSql.doQuery(argv.sql);
-    //console.log('Time elapsed: '+(new Date().getTime()-tTmp)/1000+' s'); 
-    //process.exit(0);
-  //}
     // Do db-query if --sql XXXX was set in the argument
   if(typeof argv.sql!='undefined'){
     if(typeof argv.sql!='string') {console.log('sql argument is not a string'); process.exit(-1); return; }
     var tTmp=new Date().getTime();
-    var SetupSql=new SetupSqlT(); yield* SetupSql.doQuery(flow, argv.sql);
+    var setupSql=new SetupSql();
+    setupSql.myMySql=new MyMySql(mysqlPool);
+    var [err]=yield* setupSql.doQuery(flow, argv.sql);
+    setupSql.myMySql.fin();
+    if(err) {  console.error(err);  return;}
     console.log('Time elapsed: '+(new Date().getTime()-tTmp)/1000+' s'); 
     process.exit(0);
   }
@@ -249,7 +245,7 @@ var flow=( function*(){
         //var redisVar=req.sessionID+'_Login', tmp=wrapRedisSendCommand('set',[redisVar,JSON.stringify(objT)]);     var tmp=wrapRedisSendCommand('expire',[redisVar,300]);
         yield *setRedis(req.flow, req.sessionID+'_Login', objT, 300);
         var uLoginBack=uDomain+"/"+leafLoginBack;
-        var uTmp="http://www.facebook.com/v3.2/dialog/oauth?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&state="+state+'&display=popup';
+        var uTmp="http://www.facebook.com/v4.0/dialog/oauth?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&state="+state+'&display=popup';
         res.writeHead(302, {'Location': uTmp}); res.end();
       }
       else if(pathName=='/'+leafLoginBack){    var reqLoginBack=new ReqLoginBack(objReqRes);    yield* reqLoginBack.go();    }

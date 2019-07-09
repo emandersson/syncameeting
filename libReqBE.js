@@ -87,12 +87,12 @@ ReqBE.prototype.getSchedule=function*(inObj){
  
     // Delete all old schedules
   Sql.push("DELETE FROM "+scheduleTab+" WHERE date_add(lastActivity, INTERVAL 1 MONTH)<now();");
-  Sql.push(`SELECT idSchedule,codeSchedule,title,MTab,unit,firstDayOfWeek,dateAlwaysInWOne,UNIX_TIMESTAMP(start) AS start,vNames,hFilter,dFilter,UNIX_TIMESTAMP(lastActivity) AS lastActivity,UNIX_TIMESTAMP(created) AS created
-  FROM `+scheduleTab+` WHERE idSchedule=? AND codeSchedule=?;`); 
+  Sql.push(`SELECT uuid, title, MTab, unit, intFirstDayOfWeek, intDateAlwaysInWOne, UNIX_TIMESTAMP(start) AS start, vNames, hFilter, dFilter, UNIX_TIMESTAMP(lastActivity) AS lastActivity, UNIX_TIMESTAMP(created) AS created
+  FROM `+scheduleTab+` WHERE uuid=?;`);  //BIN_TO_UUID(uuid) AS uuid  // UUID_TO_BIN(?)
 
-  var sql=Sql.join('\n'),   Val=[inObj.idSchedule, inObj.codeSchedule];
+  var sql=Sql.join('\n'),   Val=[inObj.uuid];
   var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
-  var c=results[1].length; if(c!=1) {  return [new ErrorClient(c+" rows found for that idSchedule/codeSchedule")];}
+  var c=results[1].length; if(c!=1) {  return [new ErrorClient(c+" rows found for that uuid")];}
   Ou.row=results[1][0];  
   return [null, [Ou]];
 }
@@ -104,7 +104,7 @@ ReqBE.prototype.listSchedule=function*(inObj){
   if(!isSetObject(sessionCache.userInfoFrIP)){ return [null,[Ou]]; }
 
   Ou.tab=[];
-  Sql.push("SELECT idSchedule,codeSchedule,title,UNIX_TIMESTAMP(created) AS created,UNIX_TIMESTAMP(lastActivity) AS lastActivity FROM "+scheduleTab+" s JOIN "+userTab+" u ON s.idUser=u.idUser WHERE u.IP=? AND u.idIP=?;"); 
+  Sql.push("SELECT uuid, title, UNIX_TIMESTAMP(created) AS created, UNIX_TIMESTAMP(lastActivity) AS lastActivity FROM "+scheduleTab+" s JOIN "+userTab+" u ON s.idUser=u.idUser WHERE u.IP=? AND u.idIP=?;");  // BIN_TO_UUID(uuid) AS uuid
   
   var sql=Sql.join('\n'),   Val=[sessionCache.userInfoFrIP.IP, sessionCache.userInfoFrIP.idIP];  //Val=[idUser]; 
   var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
@@ -114,7 +114,7 @@ ReqBE.prototype.listSchedule=function*(inObj){
     for(var j=0;j<len;j++){ var key=listCol.KeyCol[j]; rowN[j]=row[key]; }
     Ou.tab.push(rowN);
   }   
-  return [null, [Ou,'listScheduleRet']];
+  return [null, [Ou]];
 }
 
 ReqBE.prototype.saveSchedule=function*(inObj){
@@ -132,15 +132,13 @@ ReqBE.prototype.saveSchedule=function*(inObj){
     if(typeof value=='string') inObj[name]=myJSEscape(value);
   }
   
-  var lastActivity=0, idSchedule=null, codeSchedule='';
-  //if('idSchedule' in inObj )   eval(extractLocSome('inObj',['lastActivity', 'idSchedule', 'codeSchedule']));
-  if('idSchedule' in inObj )   { lastActivity=inObj.lastActivity; idSchedule=inObj.idSchedule; codeSchedule=inObj.codeSchedule;}   Val.push(lastActivity, idSchedule, codeSchedule);
+  var lastActivity=0, uuid=null;
+  if('uuid' in inObj )   { lastActivity=inObj.lastActivity; uuid=inObj.uuid;}   Val.push(lastActivity, uuid);
 
-  //eval(extractLocSome('inObj',['title','MTab','unit','firstDayOfWeek','dateAlwaysInWOne','vNames','hFilter','dFilter','start']));
-  var tmp=copySomeToArr([], inObj, ['title','MTab','unit','firstDayOfWeek','dateAlwaysInWOne','start', 'vNames','hFilter','dFilter']);  array_mergeM(Val,tmp);
+  //eval(extractLocSome('inObj',['title','MTab','unit','intFirstDayOfWeek','intDateAlwaysInWOne','vNames','hFilter','dFilter','start']));
+  var tmp=copySomeToArr([], inObj, ['title','MTab','unit','intFirstDayOfWeek','intDateAlwaysInWOne','start', 'vNames','hFilter','dFilter']);  array_mergeM(Val,tmp);
 
-  Sql.push("CALL "+siteName+"save(?,?,?,?,?, ?,?,?,?,?,?,?,?,?);");
-  //var Val=[]; Val.push(IP, idIP, lastActivity, idSchedule, codeSchedule, title, MTab, unit, firstDayOfWeek, dateAlwaysInWOne, start, vNames, hFilter, dFilter);
+  Sql.push("CALL "+siteName+"save(?,?,?,?, ?,?,?,?,?,?,?,?,?);");
   var sql=Sql.join('\n'); 
   var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
   var len=results.length; 
@@ -151,8 +149,8 @@ ReqBE.prototype.saveSchedule=function*(inObj){
   var c=results[0][0].nUpd; if(c!=1) { return [new ErrorClient("updated rows: "+c)]; }
   var rowA=results[len-2][0];
   //rowA.lastActivity=
-  copySome(Ou,rowA,['lastActivity', 'idSchedule', 'codeSchedule']);  
-  return [null, [Ou,'saveScheduleRet']];
+  copySome(Ou,rowA,['lastActivity', 'uuid']);  
+  return [null, [Ou]];
 
 }
 
@@ -161,16 +159,17 @@ ReqBE.prototype.deleteSchedule=function*(inObj){
   var Ou={}, Sql=[];
 
   if(isSetObject(sessionCache.userInfoFrIP)){
-    var IP=sessionCache.userInfoFrIP.IP, idIP=sessionCache.userInfoFrIP.idIP, idSchedule=inObj.idSchedule;//,  idUser=sessionCache.userInfoFrDB.customer.idUser;
+    var IP=sessionCache.userInfoFrIP.IP, idIP=sessionCache.userInfoFrIP.idIP, uuid=inObj.uuid;//,  idUser=sessionCache.userInfoFrDB.customer.idUser;
 
     Sql.push("CALL "+siteName+"delete(?,?,?);");
-    //var Val=[]; Val.push(idUser, lastActivity, idSchedule, codeSchedule, title, MTab, unit, firstDayOfWeek, dateAlwaysInWOne, start, vNames, hFilter, dFilter);
-    var Val=[]; Val.push(IP, idIP, idSchedule);
+    var Val=[]; Val.push(IP, idIP, uuid);
     var sql=Sql.join('\n'); 
     var [err, results]=yield* this.myMySql.query(flow, sql, Val); if(err) return [err];
     var len=results.length, rowLast=results[len-2];
     if('mess' in rowLast) { return [new ErrorClient(rowLast.mess)]; }
-    var c=results[0][0].nDelete; if(c!=1) { return [new ErrorClient(c+" schedules deleted")]; }
+    var nDelete=results[0][0].nDelete; if(nDelete!=1) { return [new ErrorClient(nDelete+" schedules deleted")]; }
+    Ou.nRemaining=results[1][0].nRemaining;
+    
     return [null, [Ou]];
   }  
 }

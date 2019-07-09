@@ -206,6 +206,9 @@ var isVisible=function(el) {
   return !!( el.offsetWidth || el.offsetHeight || el.getClientRects().length );
 }
 
+Node.prototype.isDisplayed=function(){
+  return this.style.display!='none';
+}
 
 
 

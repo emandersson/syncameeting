@@ -26,7 +26,7 @@ tmpSubTab='tmpDataTab';
 sqlTempSubTabCreate="CREATE TEMPORARY TABLE IF NOT EXISTS "+tmpSubTab+" (name varchar(128) NOT NULL,  boOn TINYINT(1) NOT NULL,  UNIQUE KEY (name));";
 
 listCol={};
-listCol.KeyCol=['idSchedule','codeSchedule','title'    ,'created','lastActivity'];
+listCol.KeyCol=['uuid','title'    ,'created','lastActivity'];
 listCol.dateMask=[0,0,0,  1,1];
 listCol.backSel=[0,1,2,3,4]; 
 listCol.backVis=[2,3,4]; 

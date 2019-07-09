@@ -34,8 +34,8 @@ app.reqIndex=function*() {
   var flow=req.flow;
   var siteName=req.siteName, site=req.site, uSite=req.uSite, wwwSite=req.wwwSite;
   var objQS=req.objQS;
-  var idSchedule=null; if('idSchedule' in objQS) { idSchedule=objQS.idSchedule;}
-  var codeSchedule=''; if('codeSchedule' in objQS) { codeSchedule=objQS.codeSchedule;}
+  //var uuid=null; if('uuid' in objQS) { uuid=objQS.uuid;}
+  var uuid=objQS.uuid||null;
 
 
   var requesterCacheTime=getRequesterTime(req.headers);
@@ -53,7 +53,7 @@ app.reqIndex=function*() {
       xmlns:fb="http://www.facebook.com/2008/fbml">`);
   Str.push('<head>\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>');
 
-  if(idSchedule!=null)  Str.push('<meta name="robots" content="noindex">');
+  if(uuid!=null)  Str.push('<meta name="robots" content="noindex">');
 
 
   var ua=req.headers['user-agent']||''; ua=ua.toLowerCase();
@@ -100,27 +100,31 @@ app.reqIndex=function*() {
 <meta property="og:locale:alternate" content="en_US" />`);
   }
 
-
+  
   var tmp=`
 <script>
   window.fbAsyncInit = function() {
     FB.init({
-      appId      : "`+req.rootDomain.fb.id+`",
+      appId      : '`+req.rootDomain.fb.id+`',
+      cookie     : true,
       xfbml      : true,
-      version    : "v3.2"
+      version    : 'v4.0'
     });
-    FB.AppEvents.logPageView();
+      
+    FB.AppEvents.logPageView();   
+      
   };
 
   (function(d, s, id){
      var js, fjs = d.getElementsByTagName(s)[0];
      if (d.getElementById(id)) {return;}
      js = d.createElement(s); js.id = id;
-     js.src = "//connect.facebook.net/en_US/sdk.js";
+     js.src = "https://connect.facebook.net/en_US/sdk.js";
      fjs.parentNode.insertBefore(js, fjs);
-   }(document, "script", "facebook-jssdk"));
+   }(document, 'script', 'facebook-jssdk'));
 </script>`;
   Str.push(tmp);
+
 
 
 
@@ -172,8 +176,7 @@ app.reqIndex=function*() {
   Str.push(`\n<script type="text/javascript" language="JavaScript" charset="UTF-8">
 
 boTLS=`+JSON.stringify(site.boTLS)+`;
-idSchedule=`+JSON.stringify(idSchedule)+`;
-codeSchedule=`+JSON.stringify(codeSchedule)+`;
+uuid=`+JSON.stringify(uuid)+`;
   </script>
   </body>
   </html>`);
@@ -272,7 +275,7 @@ ReqLoginBack.prototype.go=function*(){
   var uLoginBack=req.uSite+"/"+leafLoginBack;
 
   if(req.objQS.state==this.sessionLogin.state) {
-    var uToGetToken = "https://graph.facebook.com/v3.2/oauth/access_token?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&client_secret="+req.rootDomain.fb.secret+"&code="+code;
+    var uToGetToken = "https://graph.facebook.com/v4.0/oauth/access_token?"+"client_id="+req.rootDomain.fb.id+"&redirect_uri="+encodeURIComponent(uLoginBack)+"&client_secret="+req.rootDomain.fb.secret+"&code="+code;
     var reqStream=requestMod.get(uToGetToken); 
 
     var semCB=0, semY=0,  buf, myConcat=concat(function(bufT){ buf=bufT; if(semY) flow.next(); semCB=1;  });    reqStream.pipe(myConcat);    if(!semCB){semY=1; yield}
@@ -325,7 +328,7 @@ ReqLoginBack.prototype.getGraph=function*(){
   var req=this.req, flow=req.flow, res=this.res;
   
     // With the access_token you can get the data about the user
-  var uGraph = "https://graph.facebook.com/v3.2/me?access_token="+this.access_token+'&fields=id,name';  //  ,verified
+  var uGraph = "https://graph.facebook.com/v4.0/me?access_token="+this.access_token+'&fields=id,name';  //  ,verified
   var reqStream=requestMod.get(uGraph);
   var buf, myConcat=concat(function(bufT){ buf=bufT; flow.next();  });    reqStream.pipe(myConcat);    yield;
   var objGraph=JSON.parse(buf.toString());
@@ -379,17 +382,14 @@ else {
   
 
 /******************************************************************************
- * SetupSqlT
+ * SetupSql
  ******************************************************************************/
-app.SetupSqlT=function(){
+app.SetupSql=function(){
 }
-app.SetupSqlT.prototype.createTable=function(SiteName,boDropOnly){
-  if(typeof SiteName=='string') SiteName=[SiteName];
+app.SetupSql.prototype.createTable=function*(flow, siteName,boDropOnly){
+  var site=Site[siteName]; 
   
   var SqlTabDrop=[], SqlTab=[];
-  for(var iSite=0;iSite<SiteName.length;iSite++){
-  var siteName=SiteName[iSite]
-  var site=Site[siteName]; 
   var {TableName, ViewName}=site;
   var {scheduleTab, userTab}=TableName;
   //eval(extractLoc(ViewName,'ViewName'));
@@ -411,7 +411,7 @@ app.SetupSqlT.prototype.createTable=function(SiteName,boDropOnly){
 
 
 
-	  // Create users
+    // Create users
   SqlTab.push(`CREATE TABLE `+userTab+` (
   idUser INT(4) NOT NULL auto_increment,
   IP `+strIPEnum+` CHARSET utf8 NOT NULL,
@@ -421,80 +421,92 @@ app.SetupSqlT.prototype.createTable=function(SiteName,boDropOnly){
   ) AUTO_INCREMENT = `+auto_increment+`, ENGINE=`+engine+` COLLATE `+collate); 
 
 
-	  // Create schedule
+
+
+  //uuid BINARY(16) PRIMARY KEY,
+
+
+    // Create schedule
   SqlTab.push(`CREATE TABLE `+scheduleTab+` (
-  idSchedule INT(8) NOT NULL auto_increment,
+  uuid VARCHAR(36) PRIMARY KEY,
   idUser INT(4) NOT NULL,
-  codeSchedule VARCHAR(20) NOT NULL DEFAULT '',
   title VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '',
   MTab TEXT CHARSET utf8 NOT NULL,
   unit ENUM('l', 'h', 'd', 'w') NOT NULL,
-  firstDayOfWeek INT(1) NOT NULL DEFAULT 1,
-  dateAlwaysInWOne INT(1) NOT NULL DEFAULT 4,
+  intFirstDayOfWeek INT(1) NOT NULL DEFAULT 1,
+  intDateAlwaysInWOne INT(1) NOT NULL DEFAULT 4,
   start TIMESTAMP DEFAULT 0,
   vNames TEXT CHARSET utf8 NOT NULL,
   hFilter VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '',
   dFilter VARCHAR(65) CHARSET utf8 NOT NULL DEFAULT '',
   created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   lastActivity TIMESTAMP DEFAULT 0,
-  PRIMARY KEY (idSchedule),
   FOREIGN KEY (idUser) REFERENCES `+userTab+`(idUser) ON DELETE CASCADE
   ) AUTO_INCREMENT = `+auto_increment+`, ENGINE=`+engine+` COLLATE `+collate); 
+  //codeSchedule VARCHAR(20) NOT NULL DEFAULT '',
+  //uuid VARCHAR(36) NOT NULL,
+  //idSchedule INT(8) NOT NULL auto_increment,
+  //UNIQUE KEY (uuid)
 
-  }
-  if(boDropOnly) return SqlTabDrop;
-  else return array_merge(SqlTabDrop, SqlTab);
+  if(boDropOnly) var Sql=SqlTabDrop;
+  else var Sql=array_merge(SqlTabDrop, SqlTab);
+  
+  var strDelim=';', sql=Sql.join(strDelim+'\n')+strDelim, Val=[];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val);  if(err) {  return [err]; }
+  return [null];
 }
 
 
-app.SetupSqlT.prototype.createFunction=function(SiteName,boDropOnly){
-  if(typeof SiteName=='string') SiteName=[SiteName];
+app.SetupSql.prototype.createFunction=function*(flow, siteName,boDropOnly){
+  var site=Site[siteName]; 
   
   var SqlFunctionDrop=[], SqlFunction=[];
-  for(var iSite=0;iSite<SiteName.length;iSite++){
-  var siteName=SiteName[iSite];
-  
-  var site=Site[siteName]; 
   var {Prop, TableName, ViewName}=site;
   var {scheduleTab, userTab}=TableName;
   //eval(extractLoc(ViewName,'ViewName'));
 
   var strIPEnum="ENUM('"+Enum.IP.join("', '")+"')";
 
-
+      
   SqlFunctionDrop.push("DROP PROCEDURE IF EXISTS "+siteName+"save");
-  SqlFunction.push(`CREATE PROCEDURE `+siteName+`save(IIP `+strIPEnum+`, IidIP VARCHAR(128), IlastActivity INT(4), IidSchedule INT(8), IcodeSchedule VARCHAR(20), Ititle VARCHAR(128), IMTab TEXT, Iunit ENUM('l', 'h', 'd', 'w'), IfirstDayOfWeek INT(1), IdateAlwaysInWOne INT(1), Istart INT(4), IvNames TEXT, IhFilter VARCHAR(65), IdFilter VARCHAR(65))
+  SqlFunction.push(`CREATE PROCEDURE `+siteName+`save(IIP `+strIPEnum+`, IidIP VARCHAR(128), IlastActivity INT(4), ICuuid VARCHAR(36), Ititle VARCHAR(128), IMTab TEXT, Iunit ENUM('l', 'h', 'd', 'w'), IintFirstDayOfWeek INT(1), IintDateAlwaysInWOne INT(1), Istart INT(4), IvNames TEXT, IhFilter VARCHAR(65), IdFilter VARCHAR(65))
       proc_label:BEGIN
         DECLARE Vc, VboOld, VidUser INT;
+        #DECLARE VBuuid BINARY(16);         # Uncomment when BIN_TO_UUID() becomes available
+        DECLARE VBuuid VARCHAR(36);         # Remove when BIN_TO_UUID() becomes available
         #DECLARE Vnow TIMESTAMP;
         IF ISNULL(IMTab) THEN SET IMTab=''; END IF;
         IF ISNULL(IvNames) THEN SET IvNames=''; END IF;
-
-        IF ISNULL(IidSchedule) THEN
+        
+        IF ISNULL(ICuuid) THEN
           INSERT INTO `+userTab+` (IP,idIP) VALUES (IIP, IidIP) ON DUPLICATE KEY UPDATE idUser=LAST_INSERT_ID(idUser);
           SET VidUser=LAST_INSERT_ID();
-          SET IcodeSchedule=SUBSTR(RAND(), 3);
-          INSERT INTO `+scheduleTab+` (idUser,codeSchedule,lastActivity,MTab,vNames) VALUES (VidUser, IcodeSchedule, now(), '', '');
-          SET IidSchedule=LAST_INSERT_ID();
+          #SET ICuuid=UUID();               # Uncomment when BIN_TO_UUID() becomes available
+          #SET VBuuid=UUID_TO_BIN(ICuuid);  # Uncomment when BIN_TO_UUID() becomes available
+          #SET ICuuid=SUBSTR(RAND(), 3);     # Remove when BIN_TO_UUID() becomes available
+          SET ICuuid=SUBSTR(CONCAT(MD5(RAND()),MD5(RAND())), 1, 36);     # Remove when BIN_TO_UUID() becomes available
+          SET VBuuid=ICuuid;                # Remove when BIN_TO_UUID() becomes available
+          INSERT INTO `+scheduleTab+` (uuid, idUser, lastActivity, MTab, vNames) VALUES (VBuuid, VidUser, now(), '', '');
         ELSE
-          SELECT UNIX_TIMESTAMP(lastActivity)>IlastActivity INTO VboOld FROM `+scheduleTab+` WHERE idSchedule=IidSchedule AND codeSchedule=IcodeSchedule;
+          #SET VBuuid=UUID_TO_BIN(ICuuid);  # Uncomment when BIN_TO_UUID() becomes available
+          SET VBuuid=ICuuid;                # Remove when BIN_TO_UUID() becomes available
+          SELECT UNIX_TIMESTAMP(lastActivity)>IlastActivity INTO VboOld FROM `+scheduleTab+` WHERE uuid=VBuuid;
           SET Vc=ROW_COUNT();
           IF Vc!=1 THEN SELECT CONCAT('Got ', Vc, ' rows') AS mess;  LEAVE proc_label; END IF;
           IF VboOld THEN SELECT 'boOld' AS mess;  LEAVE proc_label; END IF;
         END IF;
 
-        #SET Vnow=now();
-        UPDATE `+scheduleTab+` SET title=Ititle, MTab=IMTab, unit=Iunit, firstDayOfWeek=IfirstDayOfWeek, dateAlwaysInWOne=IdateAlwaysInWOne, start=FROM_UNIXTIME(Istart), vNames=IvNames, hFilter=IhFilter, dFilter=IdFilter, lastActivity=now() WHERE idSchedule=IidSchedule AND codeSchedule=IcodeSchedule;
+        UPDATE `+scheduleTab+` SET title=Ititle, MTab=IMTab, unit=Iunit, intFirstDayOfWeek=IintFirstDayOfWeek, intDateAlwaysInWOne=IintDateAlwaysInWOne, start=FROM_UNIXTIME(Istart), vNames=IvNames, hFilter=IhFilter, dFilter=IdFilter, lastActivity=now() WHERE uuid=VBuuid;
         SELECT ROW_COUNT() AS nUpd;
-        #SELECT UNIX_TIMESTAMP(Vnow) AS lastActivity, IidSchedule AS idSchedule, IcodeSchedule AS codeSchedule;
-        SELECT UNIX_TIMESTAMP(lastActivity) AS lastActivity, idSchedule, codeSchedule FROM `+scheduleTab+` WHERE idSchedule=IidSchedule;
+        SELECT UNIX_TIMESTAMP(lastActivity) AS lastActivity, uuid FROM `+scheduleTab+` WHERE uuid=VBuuid;
       END`);
-  // CALL syncameetingLsave('fb', '12345', 1.4e9, null, null, 'myTitle', 'abcdMTab', 'd', 0, 4, 1.4e9, 'abcnames', 'abchFilt', 'abcdfilt')
-  // CALL syncameetingLsave('fb', '12345', 1.5e9, 1, '4885819884842094', 'myNTitle', 'abcdMTab', 'd', 0, 4, 1.4e9, 'abcnames', 'abchFilt', 'abcdfilt')
-  // CALL syncameetingLdelete(1,1)
+  // CALL syncameetingLsave('fb', '12345', 1.4e9, null, 'myTitle', 'abcdMTab', 'd', 0, 4, 1.4e9, 'abcnames', 'abchFilt', 'abcdfilt')
+  // CALL syncameetingLsave('fb', '12345', 1.5e9, '4885819884842094', 'myNTitle', 'abcdMTab', 'd', 0, 4, 1.4e9, 'abcnames', 'abchFilt', 'abcdfilt')
+  // CALL syncameetingLdelete('fb', '12345', '4885819884842094')
+
 
   SqlFunctionDrop.push("DROP PROCEDURE IF EXISTS "+siteName+"delete");
-  SqlFunction.push(`CREATE PROCEDURE `+siteName+`delete(IIP `+strIPEnum+`, IidIP VARCHAR(128), IidSchedule INT(8))
+  SqlFunction.push(`CREATE PROCEDURE `+siteName+`delete(IIP `+strIPEnum+`, IidIP VARCHAR(128), ICuuid VARCHAR(36))
       proc_label:BEGIN
         DECLARE Vc, VidUser INT;
 
@@ -502,48 +514,47 @@ app.SetupSqlT.prototype.createFunction=function(SiteName,boDropOnly){
         SELECT ROW_COUNT() INTO Vc;
         IF Vc!=1 THEN SELECT CONCAT(Vc, ' rows with that ID') AS err;  LEAVE proc_label; END IF;
 
-        DELETE FROM `+scheduleTab+`  WHERE idUser=VidUser AND idSchedule=IidSchedule;
+        DELETE FROM `+scheduleTab+`  WHERE idUser=VidUser AND uuid=ICuuid;
         SELECT ROW_COUNT() INTO Vc;
         #IF Vc!=1 THEN SELECT CONCAT(Vc, ' rows deleted') AS err;  LEAVE proc_label; END IF;
         SELECT Vc AS nDelete;
 
-        SELECT COUNT(*) INTO Vc FROM `+scheduleTab+`  WHERE idUser=VidUser;
-        IF Vc=0 THEN
+        SELECT @nRemaining:=COUNT(*) AS nRemaining FROM `+scheduleTab+`  WHERE idUser=VidUser;
+        IF @nRemaining=0 THEN
           DELETE FROM `+userTab+`  WHERE idUser=VidUser;
         END IF;
       END`);
 
-  }
-  var SqlA=this.funcGen(boDropOnly);
-  if(boDropOnly) var SqlB=SqlFunctionDrop;
-  else var SqlB=array_merge(SqlFunctionDrop, SqlFunction);
-  return array_merge(SqlA, SqlB);
-}
-
-
-app.SetupSqlT.prototype.funcGen=function(boDropOnly){
-  var SqlFunction=[], SqlFunctionDrop=[];
-  if(boDropOnly) return SqlFunctionDrop;
-  else return array_merge(SqlFunctionDrop, SqlFunction);
-}
-app.SetupSqlT.prototype.createDummies=function(SiteName){
-  if(typeof SiteName=='string') SiteName=[SiteName];
-  var SqlDummies=[];
-  return SqlDummies;
-}
-app.SetupSqlT.prototype.createDummy=function(SiteName){
-  if(typeof SiteName=='string') SiteName=[SiteName];
-  var SqlDummy=[];
-  return SqlDummy;
-}
-
-app.SetupSqlT.prototype.truncate=function(SiteName){
-  if(typeof SiteName=='string') SiteName=[SiteName];
+  if(boDropOnly) var Sql=SqlFunctionDrop;
+  else var Sql=array_merge(SqlFunctionDrop, SqlFunction);
   
-  var SqlTableTruncate=[];
-  for(var iSite=0;iSite<SiteName.length;iSite++){
-  var siteName=SiteName[iSite]
+  var strDelim=';', sql=Sql.join(strDelim+'\n')+strDelim, Val=[];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val);  if(err) {  return [err]; }
+  return [null];
+}
+
+
+app.SetupSql.prototype.funcGen=function*(flow, boDropOnly){
+  var SqlFunction=[], SqlFunctionDrop=[];
+  if(boDropOnly) var Sql=SqlFunctionDrop;
+  else var Sql=array_merge(SqlFunctionDrop, SqlFunction);
+  return [null];
+}
+app.SetupSql.prototype.createDummies=function*(flow, siteName){
   var site=Site[siteName]; 
+  var SqlDummies=[];
+  return [null];
+}
+app.SetupSql.prototype.createDummy=function*(flow, siteName){
+  var site=Site[siteName]; 
+  var SqlDummy=[];
+  return [null];
+}
+
+app.SetupSql.prototype.truncate=function*(flow, siteName){
+  var site=Site[siteName]; 
+  
+  var Sql=[];
 
   var StrTabName=object_values(site.TableName);
 
@@ -551,50 +562,57 @@ app.SetupSqlT.prototype.truncate=function(SiteName){
   for(var i=0;i<StrTabName.length;i++){
     SqlTmp.push(StrTabName[i]+" WRITE");
   }
+  Sql.push('SET FOREIGN_KEY_CHECKS=0');
   var tmp="LOCK TABLES "+SqlTmp.join(', ');
-  SqlTableTruncate.push(tmp);
+  Sql.push(tmp);
   for(var i=0;i<StrTabName.length;i++){
-    SqlTableTruncate.push("DELETE FROM "+StrTabName[i]);
-    SqlTableTruncate.push("ALTER TABLE "+StrTabName[i]+" AUTO_INCREMENT = 1");
+    Sql.push("DELETE FROM "+StrTabName[i]);
+    Sql.push("ALTER TABLE "+StrTabName[i]+" AUTO_INCREMENT = 1");
   }
-  SqlTableTruncate.push('UNLOCK TABLES');
-  }
-  return SqlTableTruncate;
+  Sql.push('UNLOCK TABLES');
+  Sql.push('SET FOREIGN_KEY_CHECKS=1');
+  
+  var strDelim=';', sql=Sql.join(strDelim+'\n')+strDelim, Val=[];
+  var [err, results]=yield* this.myMySql.query(flow, sql, Val);  if(err) {  return [err]; }
+  return [null];
 }
 
+
   // Called when --sql command line option is used
-app.SetupSqlT.prototype.doQuery=function*(flow, strCreateSql){
-  //var StrValidSqlCalls=['createTable', 'dropTable', 'createFunction', 'dropFunction', 'truncate', 'createDummy', 'createDummies'];
-  if(StrValidSqlCalls.indexOf(strCreateSql)==-1){var tmp=strCreateSql+' is not valid input, try any of these: '+StrValidSqlCalls.join(', '); console.log(tmp); return; }
+app.SetupSql.prototype.doQuery=function*(flow, strCreateSql){
+  if(StrValidSqlCalls.indexOf(strCreateSql)==-1){var tmp=strCreateSql+' is not valid input, try any of these: '+StrValidSqlCalls.join(', '); return [new Error(tmp)]; }
   var Match=RegExp("^(drop|create)?(.*?)$").exec(strCreateSql);
-  if(!Match) { debugger;  return; }
+  if(!Match) { debugger;  return [new Error("!Match")]; }
   
   var boDropOnly=false, strMeth=Match[2];
   if(Match[1]=='drop') { boDropOnly=true; strMeth='create'+strMeth;}
   else if(Match[1]=='create')  { strMeth='create'+strMeth; }
-
-  var SqlA=this[strMeth](SiteName, boDropOnly); 
-  var strDelim=';', sql=SqlA.join(strDelim+'\n')+strDelim, Val=[], boDoExit=0;  
   
-  var [err, results]=yield* this.myMySql.query(flow, sql, Val);
-  var tmp=createMessTextOfMultQuery(SqlA, err, results);  console.log(tmp); 
-  if(err) debugger; 
+  if(strMeth=='createFunction'){ 
+    var [err]=yield* this.funcGen(flow, boDropOnly); if(err){  return [err]; }  // Create common functions
+  }
+  for(var iSite=0;iSite<SiteName.length;iSite++){
+    var siteName=SiteName[iSite];
+    console.log(siteName);
+    var [err]=yield* this[strMeth](flow, siteName, boDropOnly);  if(err){  return [err]; }
+  }
+  return [null];
 }
 
-
-
-var createMessTextOfMultQuery=function(Sql, err, results){
-  var nSql=Sql.length, nResults='na'; if(results instanceof Array) nResults=results.length;
-  var StrMess=[];   StrMess.push('nSql='+nSql+', nResults='+nResults);
+var writeMessTextOfMultQuery=function(Sql, err, results){
+  var nSql=Sql.length, nResults='(single query)'; if(results instanceof Array) nResults=results.length;
+  console.log('nSql='+nSql+', nResults='+nResults);
+  var StrMess=[];
   if(err){
     StrMess.push('err.index: '+err.index+', err: '+err);
     if(nSql==nResults){
       var tmp=Sql.slice(bound(err.index-1,0,nSql), bound(err.index+2,0,nSql)),  sql=tmp.join('\n');
-      StrMess.push('Since "Sql" and "results" seem correctly aligned (has the same size), then here, in the middle, is printed the query with the corresponding index (surounded by the preceding and following query to get a context):\n'+sql); 
+      StrMess.push('Since "Sql" and "results" seem correctly aligned (has the same size), then 3 queries are printed (the preceding, the indexed, and following query (to get a context)):\n'+sql); 
     }
+    console.log(StrMess.join('\n'));
   }
-  return StrMess.join('\n');
 }
+
 
 
 /******************************************************************************

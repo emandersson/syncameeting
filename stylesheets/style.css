@@ -13,8 +13,8 @@ body {font-family:arial, verdana, helvetica;font-size:100%; overscroll-behavior:
 body {-webkit-text-size-adjust: 100%; }
 
 table {border-collapse:collapse;}
-table,td,th {border:1px solid black;}
-td,th {min-width:20px}
+td,th {border:1px solid black;}
+td,th {min-width:1.6em; text-align:center;}
 
 input, textarea, keygen, select, button, isindex  {font-family:arial, verdana, helvetica;font-size:inherit}
 
@@ -70,7 +70,7 @@ span.message{
 
 .popupHover {
   position:absolute;
-  z-index:200; 
+  z-index:10000; 
   padding: 3px;
   margin-left: 10px;
   margin-top: 5px;
