@@ -14,7 +14,7 @@ body {-webkit-text-size-adjust: 100%; }
 
 table {border-collapse:collapse;}
 td,th {border:1px solid black;}
-td,th {min-width:1.6em; text-align:center;}
+td,th {min-width:1.6em; text-align:center; vertical-align:middle}
 
 input, textarea, keygen, select, button, isindex  {font-family:arial, verdana, helvetica;font-size:inherit}
 

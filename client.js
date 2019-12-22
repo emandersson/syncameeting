@@ -300,11 +300,18 @@ var linkCreatedPopExtend=function(el){
     aMeetingLink.prop({href:strLink}).myText(strLink);
   }
   var butClose=createElement('button').myText("Close").on('click', historyBack);
-  var aMeetingLink=createElement('a').css({display:'block', 'word-break':'break-all'});
-  var divA=createElement('div').myAppend("Send this link to all meeting participants ", aMeetingLink).css({'margin-bottom':'1em'});
+  var aMeetingLink=createElement('a').css({display:'block', 'word-break':'break-all', 'font-size':'85%', margin:'0.4em 0 0.9em'});
+  var divA=createElement('div').myAppend("Send this link to all meeting participants:");
+  var butCopy=createElement('button').myText('Copy link').css({'font-size':'85%', display:'block', 'margin-bottom':'1.3em'}).on('click',function(){
+    //this.select();
+    //this.setSelectionRange(0, 99999); /*For mobile devices*/
+    //document.execCommand("copy");
+    //Clipboard.writeText();
+    //Clipboard.copy(aMeetingLink.href);
+  });
   
   var blanket=createElement('div').addClass("blanket");
-  var centerDiv=createElement('div').myAppend(divA,butClose);
+  var centerDiv=createElement('div').myAppend(divA, aMeetingLink, butClose); //, butCopy
   centerDiv.addClass("Center").css({padding: '1em 0.8em 1em 0.8em'}); 
   el.addClass("Center-Container").myAppend(centerDiv,blanket); //
   return el;
@@ -528,7 +535,7 @@ var deleteScheduleConfirmPopExtend=function(el){
   });
   var uuidRow;
   var cancel=createElement('button').myText("Cancel").on('click', historyBack);
-  var divA=createElement('div').myText("Do you really want to delete this schedule?");
+  var divA=createElement('div').myText("Do you really want to delete this schedule?").css({'margin-bottom':'0.5em'});
   
   var blanket=createElement('div').addClass("blanket");
   var centerDiv=createElement('div').myAppend(divA,el.yes,cancel);
@@ -539,15 +546,16 @@ var deleteScheduleConfirmPopExtend=function(el){
 
 var linkListPopExtend=function(el){
   el.toString=function(){return 'linkListPop';}
-  var makeDeleteFunc=function(i){return function(){ 
+  var deleteFunc=function(){
+    var {myUUID}=this.parentNode.parentNode;
     if(isSetObject(userInfoFrIP)){
-      deleteScheduleConfirmPop.setup(i); deleteScheduleConfirmPop.setVis(); deleteScheduleConfirmPop.yes.focus(); doHistPush({view:deleteScheduleConfirmPop});
+      deleteScheduleConfirmPop.setup(myUUID); deleteScheduleConfirmPop.setVis(); deleteScheduleConfirmPop.yes.focus(); doHistPush({view:deleteScheduleConfirmPop});
     }
     else {
       loginReturn2=loginReturnList;
       loginPop.openFunc();
     }
-  };}
+  }
   el.deleteScheduleRet=function(data){
     //if(data.nRemaining==0) historyBack();
   }
@@ -560,23 +568,33 @@ var linkListPopExtend=function(el){
     for(var i=0;i<tab.length;i++){   
       var uuid=tab[i][jUuid];
       var tmp=uFE+'?uuid='+uuid;
-      var alink=createElement('a').attr({href:tmp}).myAppend(tmp).css({'word-break':'break-all'});
-      var del=createElement('div').myText('✖').css(cssDeleteButtonMouseOut).css({cursor:'pointer', 'font-size':'1.5em'}).on('click', makeDeleteFunc(uuid))
+      var alink=createElement('a').attr({href:tmp}).myAppend(tmp).css({'word-break':'break-all'});  //
+      var butCopy=createElement('button').attr({href:tmp}).myAppend('copy ').css({'font-size':'85%', 'margin-left':'0.5em'}).on('click',function(){
+        //this.select();
+        //this.setSelectionRange(0, 99999); /*For mobile devices*/
+        //document.execCommand("copy");
+        //Clipboard.writeText(this.previousSibling.href); 
+        //Clipboard.copy(this.previousSibling.href);
+      });
+      var del=createElement('div').myText('✖').css(cssDeleteButtonMouseOut).css({cursor:'pointer', 'font-size':'1.5em'}).on('click', deleteFunc)
                 .on('mouseover', function(){this.css(cssDeleteButtonMouseOver);}).on('mouseout', function(){this.css(cssDeleteButtonMouseOut);});
-      var arrRow=[createElement('td').myAppend(del), createElement('td').myAppend(tab[i][jTitle]).css({'word-break':'break-word'}), createElement('td').myAppend(alink), createElement('td').myAppend(swedDate(tab[i][jCreated])),
-        createElement('td').myAppend(swedDate(tab[i][jLastActivity]))];
-      var tr=createElement('tr').myAppend(...arrRow);
+      var tdDel=createElement('td').myAppend(del).css({'vertical-align':'middle', 'padding':'0.2em 0.4em'}).prop({'title':'Delete'});
+      var tdTitle=createElement('td').myAppend(tab[i][jTitle]).css({'word-break':'break-word'});
+      var tdLink=createElement('td').myAppend(alink);  //, butCopy
+      //var tdCopy=createElement('td').myAppend();
+      var arrRow=[tdDel, tdTitle, tdLink, createElement('td').myAppend(swedDate(tab[i][jCreated])), createElement('td').myAppend(swedDate(tab[i][jLastActivity]))];
+      var tr=createElement('tr').myAppend(...arrRow).prop({myUUID:uuid});
       tbody.append(tr);
     }
     //table.toggle(Boolean(tab.length));
     toggleSpecialistButts(isSetObject(userInfoFrIP));
-    var Td=tbody.querySelectorAll('td:nth-child(1)'); Td.forEach(ele=>ele.css({'padding-left':'0.5em'}));
+    //var Td=tbody.querySelectorAll('td:nth-child(1)'); Td.forEach(ele=>ele.css({'padding':'0 0.4em'}));
     
     spanLinkList.myText(tab.length);
   }
   var tab=[]; el.tab=tab;
-  var arrRow=[createElement('th'), createElement('th').myText('Title'), createElement('th').myText('Link to send to the meeting participants.'), createElement('th').myText('Created'), createElement('th').myText('Last activity')];
-  arrRow.forEach(ele=>ele.css({'word-break':'break-word'}));
+  var arrRow=[createElement('th'), createElement('th').myText('Title'), createElement('th').myText('Link to send to the meeting participants.'), createElement('th').myText('Cre­at­ed'), createElement('th').myText('Last act­ivity')];
+  arrRow.forEach(ele=>ele.css({'word-break':'keep-all'}));
   var elRow=createElement('tr').myAppend(...arrRow), thead=createElement('thead').myAppend(elRow);
   var caption=createElement('caption').myText('Saved meetings').attr("contenteditable", "true");
   var tbody=createElement('tbody');
@@ -601,6 +619,9 @@ var linkListPopExtend=function(el){
 /*******************************************************************************************************************
  * scheduleExtend
  *******************************************************************************************************************/
+
+
+
 
 var scheduleExtend=function(el){
   var dayStart=function(tu){
@@ -647,23 +668,23 @@ var scheduleExtend=function(el){
       elRY.children[0].css(tmpCssW).prepend(butStEarlier);
       elRY.children[1].css(tmpCssW).append(butStLater);
       elRY.lastChild.css(tmpCssW).myAppend(butDecCols);
-      elRY.append(createElement('th').css(tmpCssW).css({border:'0px'}).myAppend(butIncCols));
+      elRY.append(createElement('th').css(tmpCssW).css({'border-color':'transparent'}).myHtml('&nbsp;').myAppend(butIncCols));
       thead.empty().append(elRY,elRM,elRD,elRW,elRN,elRH);
     }
-    var makeKeyUpFunc=function(i){return function(){ el.vNames[i]=this.value;}}
+    var keyUpFunc=function(){var {iMy}=this.parentNode.parentNode; el.vNames[iMy]=this.value;}
     if(el.MTab!=null && el.vNames!=null) {
       for(var i=0;i<el.MTab.length;i++) {
         
-        var del=createElement('div').myAppend('✖').css(cssDeleteButtonMouseOut).css({cursor:'pointer', 'font-size':'1.5em', display:'inline-block','margin-left':'0.5em'}).on('click', makeRemovePersonFunc(i))
+        var del=createElement('div').myAppend('✖').css(cssDeleteButtonMouseOut).css({cursor:'pointer', 'font-size':'1.5em', display:'inline-block','margin':'0 0.3em'}).on('click', removePersonFunc)
                 .on('mouseover', function(){this.css(cssDeleteButtonMouseOver);}).on('mouseout', function(){this.css(cssDeleteButtonMouseOut);});
-        var input=createElement('input').prop({type:'text', placeholder:"Name"}).prop('value',el.vNames[i]).on('keyup', makeKeyUpFunc(i));
+        var input=createElement('input').prop({type:'text', placeholder:"Name"}).prop('value',el.vNames[i]).on('keyup', keyUpFunc);
         
-        var row=createElement('tr'),td=createElement('td').myAppend(del,' ',input).css({'white-space':'nowrap'});
+        var row=createElement('tr').prop({iMy:i}),td=createElement('td').myAppend(del,' ',input).css({'white-space':'nowrap'});
         row.append(td); 
         for(var j=0;j<el.MTab[i].length;j++) { 
           var tmp,eTmp=el.MTab[i][j];
           if(eTmp==enumY) tmp='lightgreen'; else if(eTmp==enumN) tmp='red'; else tmp='';
-          var td=createElement('td').css({'background-color':tmp}).on('click', makeCellClickFunc(i,j));
+          var td=createElement('td').css({'background-color':tmp}).prop({iMy:i, jMy:j}).on('click', cellClickFunc);
           //td.myState=eTmp;
           
           row.append(td); 
@@ -682,28 +703,26 @@ var scheduleExtend=function(el){
     var arrTmp=[]; for(var j=0;j<nCols;j++){arrTmp[j]=enumVoid;}
     el.MTab.push(arrTmp); el.vNames.push('');   el.M2Table();
   }
-  var makeRemovePersonFunc=function(iRemove){
-    return function(){
-      var nRows=el.MTab.length,nCols=el.vTime.length, nRowsN=nRows-1;
-      var MTabN=[], vNamesN=[];
-      for(var i=0;i<nRows;i++){ 
-        if(i!=iRemove){
-          MTabN.push(el.MTab[i]);
-          vNamesN.push(el.vNames[i]);
-        }
+  
+  var removePersonFunc=function(){
+    var {iMy}=this.parentNode.parentNode;
+    var nRows=el.MTab.length,nCols=el.vTime.length, nRowsN=nRows-1;
+    var MTabN=[], vNamesN=[];
+    for(var i=0;i<nRows;i++){ 
+      if(i!=iMy){
+        MTabN.push(el.MTab[i]);
+        vNamesN.push(el.vNames[i]);
       }
-      el.MTab=MTabN;el.vNames=vNamesN;   el.M2Table();
     }
+    el.MTab=MTabN;el.vNames=vNamesN;   el.M2Table();
   }
-  var makeCellClickFunc=function(i,j){ return function(){
-    //var eTmp=(this.myState+1)%2, tmp;
-    var eTmp=(el.MTab[i][j]+1)%2,tmp;
-    el.MTab[i][j]=eTmp;      
-    //this.myState=eTmp;
-    //if(eTmp==enumY) tmp='classYes'; else if(eTmp==enumN) tmp='classNo'; else tmp='';
+  var cellClickFunc=function(){
+    var {iMy,jMy}=this;
+    var eTmp=(el.MTab[iMy][jMy]+1)%2, tmp;
+    el.MTab[iMy][jMy]=eTmp;      
     if(eTmp==enumY) tmp='lightgreen'; else if(eTmp==enumN) tmp='red'; else tmp='';
     this.css({'background-color':tmp});
-  }}
+  }
    
 
   el.calcVTime= function(startN,unitN,nCols,nStChange,nColsChange){ 
@@ -1156,20 +1175,22 @@ var divBlanket=createElement('div').css({position:'fixed', 'background-color':'w
   // sch
   //
   
+//var deleteRowConfirmPop=deleteRowConfirmPopExtend(createElement('div'));
+
 var rewriteTabDiff=function(nStChange,nColsChange){
   var vTimeN=sch.calcVTime('','','',nStChange,nColsChange);  sch.convertMTab('',vTimeN);  sch.vTime=vTimeN;  sch.M2Table();
 };
 var tmpCss={position:'absolute', 'font-size':'120%'};
-var butStEarlier=createElement('button').myText('<').css(tmpCss).css({right:'0.5em'}).prop({title:'Start schedule earlier.'}).on('click', function(e){
+var butStEarlier=createElement('button').myText('⇦').css(tmpCss).css({right:'0.5em'}).prop({title:'Start schedule earlier.'}).on('click', function(e){
   rewriteTabDiff(-1,0);
 });
-var butStLater=createElement('button').myText('>').css(tmpCss).css({left:'0.5em'}).prop({title:'Start schedule later.'}).on('click', function(e){
+var butStLater=createElement('button').myText('⇨').css(tmpCss).css({left:'0.5em'}).prop({title:'Start schedule later.'}).on('click', function(e){
   rewriteTabDiff(1,0);
 });
-var butDecCols=createElement('button').myText('-').css(tmpCss).css({right:'0.5em'}).prop({title:'Fewer columns.'}).on('click', function(e){
+var butDecCols=createElement('button').myText('-').css(tmpCss).css({right:'0.5em', width:'1.3em'}).prop({title:'Fewer columns.'}).on('click', function(e){
   rewriteTabDiff(0,-1);
 });
-var butIncCols=createElement('button').myText('+').css(tmpCss).css({left:'0.5em'}).prop({title:'Add columns.'}).on('click', function(e){
+var butIncCols=createElement('button').myText('+').css(tmpCss).css({left:'0.5em', width:'1.3em'}).prop({title:'Add columns.'}).on('click', function(e){
   rewriteTabDiff(0,1);
   this.scrollIntoViewIfNeeded();
 });
