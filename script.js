@@ -1,5 +1,6 @@
 
 http = require("http");
+https = require('https');
 url = require("url");
 path = require("path");
 fs = require("fs");
@@ -69,21 +70,16 @@ if(  (urlRedis=process.env.REDISTOGO_URL)  || (urlRedis=process.env.REDISCLOUD_U
 }
 
 
-var StrCookiePropProt=["HttpOnly", "Path=/","max-age="+3600*24*30];
-//if(boDO) { StrCookiePropProt.push("secure"); }
-var StrCookiePropStrict=StrCookiePropProt.concat("SameSite=Strict"),   StrCookiePropLax=StrCookiePropProt.concat("SameSite=Lax"),   StrCookiePropNormal=StrCookiePropProt.concat();
-strCookiePropStrict=";"+StrCookiePropStrict.join(';');  strCookiePropLax=";"+StrCookiePropLax.join(';');  strCookiePropNormal=";"+StrCookiePropNormal.join(';');
-
-
 var flow=( function*(){
 
-    // Default config variables
+    // Default config variables (If you want to change them I suggest you create a file config.js and overwrite them there)
   boDbg=0; boAllowSql=1; port=5000; levelMaintenance=0; googleSiteVerification='googleXXX.html';
   wwwCommon='';
   domainPayPal='www.paypal.com';
   urlPayPal='https://www.paypal.com/cgi-bin/webscr';
   intDDOSMax=100; tDDOSBan=5; 
   maxUnactivity=3600*24;
+  boUseSSLViaNodeJS=false;
 
   port=argv.p||argv.port||5000;
   if(argv.h || argv.help) {helpTextExit(); return;}
@@ -150,13 +146,18 @@ var flow=( function*(){
     fs.watch('stylesheets', makeWatchCB('stylesheets', ['style.css']) );
   }
 
+  var StrCookiePropProt=["HttpOnly", "Path=/","max-age="+3600*24*30];
+  if(!boLocal || boUseSSLViaNodeJS) StrCookiePropProt.push("secure");
+  var StrCookiePropStrict=StrCookiePropProt.concat("SameSite=Strict"),   StrCookiePropLax=StrCookiePropProt.concat("SameSite=Lax"),   StrCookiePropNormal=StrCookiePropProt.concat("SameSite=None");
+  app.strCookiePropStrict=";"+StrCookiePropStrict.join(';');  app.strCookiePropLax=";"+StrCookiePropLax.join(';');  app.strCookiePropNormal=";"+StrCookiePropNormal.join(';');
+  
   handler=function(req, res){
     req.flow=(function*(){
       
       //res.setHeader("X-Frame-Options", "deny");  // Deny for all (note: this header is removed for images (see reqMediaImage) (should also be removed for videos))
       res.setHeader("Content-Security-Policy", "frame-ancestors 'none'");  // Deny for all (note: this header is removed in certain requests)
       res.setHeader("X-Content-Type-Options", "nosniff");  // Don't try to guess the mime-type (I prefer the rendering of the page to fail if the mime-type is wrong)
-      //if(boDO) res.setHeader("Strict-Transport-Security", "max-age="+3600*24*365); // All future requests must be with https (forget this after a year)
+      if(!boLocal || boUseSSLViaNodeJS) res.setHeader("Strict-Transport-Security", "max-age="+3600*24*365); // All future requests must be with https (forget this after a year)
       res.setHeader("Referrer-Policy", "origin");  //  Don't write the refer unless the request comes from the origin
       
 
@@ -259,7 +260,14 @@ var flow=( function*(){
     
     })(); req.flow.next();
   }
-  http.createServer(handler).listen(parseInt(port, 10));
+  port=parseInt(port, 10);
+  
+  if(boUseSSLViaNodeJS){
+    const options = { key: fs.readFileSync('0SSLCert/server.key'), cert: fs.readFileSync('0SSLCert/server.cert') };
+    https.createServer(options, handler).listen(port);   console.log("Listening to HTTPS requests at port " + port);
+  } else{
+    http.createServer(handler).listen(port);   console.log("Listening to HTTP requests at port " + port);
+  }
 
-  console.log("Listening to port " + port);
+  //http.createServer(handler).listen(parseInt(port, 10)); console.log("Listening to port " + port);
 })(); flow.next();
