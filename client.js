@@ -123,30 +123,56 @@ history.fastBack=function(viewGoal, boRefreshHash){
 // spanMessageTextCreate
 //
  
-var spanMessageTextCreate=function(){
-  var el=createElement('span');
+//var spanMessageTextCreate=function(){
+  //var el=createElement('span');
+  //var spanInner=createElement('span');
+  //el.appendChild(spanInner, imgBusy)
+  //el.resetMess=function(time){
+    //clearTimeout(messTimer);
+    //if(typeof time =='number') { messTimer=setTimeout('resetMess()',time*1000); return; }
+    //spanInner.myText(' ');
+    //imgBusy.hide();
+  //}
+  //el.setMess=function(str,time,boRot){
+    //spanInner.myText(str);
+    //clearTimeout(messTimer);
+    //if(typeof time =='number')     messTimer=setTimeout('resetMess()',time*1000);
+    //imgBusy.toggle(Boolean(boRot));
+  //};
+  //el.setHtml=function(str,time,boRot){
+    //spanInner.myHtml(str);
+    //clearTimeout(messTimer);
+    //if(typeof time =='number')     messTimer=setTimeout('resetMess()',time*1000);
+    //imgBusy.toggle(Boolean(boRot));
+  //};
+  //var messTimer;
+  //el.addClass('message');//.css({'z-index':8100,position:'fixed'});
+  //return el;
+//}
+var divMessageTextCreate=function(){
   var spanInner=createElement('span');
-  el.appendChild(spanInner, imgBusy)
+  var imgBusyLoc=imgBusy.cloneNode().css({zoom:'65%','margin-left':'0.4em'}).hide();
+  var el=createElement('div').myAppend(spanInner, imgBusyLoc);
   el.resetMess=function(time){
     clearTimeout(messTimer);
-    if(typeof time =='number') { messTimer=setTimeout('resetMess()',time*1000); return; }
+    if(time) { messTimer=setTimeout(resetMess, time*1000); return; }
     spanInner.myText(' ');
-    imgBusy.hide();
+    imgBusyLoc.hide();
   }
-  el.setMess=function(str,time,boRot){
+  el.setMess=function(str='',time,boRot){
     spanInner.myText(str);
     clearTimeout(messTimer);
-    if(typeof time =='number')     messTimer=setTimeout('resetMess()',time*1000);
-    imgBusy.toggle(Boolean(boRot));
+    if(time)     messTimer=setTimeout(resetMess, time*1000);
+    imgBusyLoc.toggle(Boolean(boRot));
   };
-  el.setHtml=function(str,time,boRot){
+  el.setHtml=function(str='',time,boRot){
     spanInner.myHtml(str);
     clearTimeout(messTimer);
-    if(typeof time =='number')     messTimer=setTimeout('resetMess()',time*1000);
-    imgBusy.toggle(Boolean(boRot));
+    if(time)     messTimer=setTimeout(resetMess, time*1000);
+    imgBusyLoc.toggle(Boolean(boRot));
   };
   var messTimer;
-  el.addClass('message');//.css({'z-index':8100,position:'fixed'});
+  el.addClass('message');
   return el;
 }
 
@@ -157,9 +183,12 @@ var spanMessageTextCreate=function(){
 // Login stuff
 //
 
-var toggleSpecialistButts=function(boIn){
-  var boIn=Boolean(boIn);  
-  butLinkList.toggle(boIn); butLogin.toggle(!boIn);
+var loginInfoToggleStuff=function(){
+  var boIn=Boolean(isSetObject(userInfoFrIP));
+  divLoginInfo.setStat();
+  divEntryBar.visible(); // This only needed the first time really
+  divEntryBar.toggle(!boIn);
+  butLinkList.toggle(boIn); //butLogin.toggle(!boIn);
   //if(boIn) {linkListPop.show(); butLogin.hide();}  else {linkListPop.hide(); butLogin.show();}
 }
 
@@ -180,8 +209,7 @@ app.loginReturn=function(userInfoFrIPT,userInfoFrDBT,fun,strMess,CSRFCodeT){
   }
   
   resetMess();
-  loginInfo.setStat();
-  toggleSpecialistButts(isSetObject(userInfoFrIP));
+  loginInfoToggleStuff();
   loginPop.closeFunc();
 
   if(loginReturn2) loginReturn2();
@@ -222,18 +250,18 @@ var loginPopExtend=function(el){
   
   var strType;
   
-  var headHelp=imgHelp.cloneNode().css({'margin-left':'1em'}),  bub=createElement('div').myHtml(langHtml.loginPop.headHelp);     popupHover(headHelp,bub);  
+  var headHelp=imgHelp.cloneNode(1).css({'margin-left':'1em'}),  bub=createElement('div').myHtml(langHtml.loginPop.headHelp);     popupHover(headHelp,bub);  
   var head=createElement('span').myAppend(langHtml.loginPop.loginMethods);
   var pHead=createElement('p').myAppendHtml(head,headHelp);
 
   
   var strButtonSize='3em';
-  var fbIm=createElement('img').on('click', function(){popupWin('fb','');}).prop({src:uFB}).css({position:'relative',top:'0.4em'}); //,width:strButtonSize,heigth:strButtonSize
-  var fbHelp=imgHelp.cloneNode().css({margin:'0 0 0 1em'}),  bub=createElement('div').myHtml(langHtml.loginPop.fbComment);     popupHover(fbHelp,bub);  
+  var fbIm=createElement('img').on('click', function(){popupWin('fb','');}).prop({src:uFB, alt:"fb"}).css({position:'relative',top:'0.4em'}); //,width:strButtonSize,heigth:strButtonSize
+  var fbHelp=imgHelp.cloneNode(1).css({margin:'0 0 0 1em'}),  bub=createElement('div').myHtml(langHtml.loginPop.fbComment);     popupHover(fbHelp,bub);  
 
-  var googleIm=createElement('img').prop({src:uGoogle}).on('click', function(){popupWin('google','');}).css({position:'relative',top:'0.4em',width:strButtonSize,heigth:strButtonSize,'margin-left':'1em'}); 
+  var googleIm=createElement('img').prop({src:uGoogle, alt:"google"}).on('click', function(){popupWin('google','');}).css({position:'relative',top:'0.4em',width:strButtonSize,heigth:strButtonSize,'margin-left':'1em'}); 
 
-  var openIDIm=createElement('img').prop({src:uOID22}).css({position:'relative',top:'0.4em',width:strButtonSize,heigth:strButtonSize,'margin-left':'1em',background:'white'}); 
+  var openIDIm=createElement('img').prop({src:uOID22, alt:"openID"}).css({position:'relative',top:'0.4em',width:strButtonSize,heigth:strButtonSize,'margin-left':'1em',background:'white'}); 
   openIDIm.on('click', function(){p2.toggle();});
   var p1=createElement('p').myAppend(fbIm).css({'text-align':'center'}); // ,googleIm,openIDIm
 
@@ -256,30 +284,33 @@ var loginPopExtend=function(el){
 
 }
 
-var loginInfoExtend=function(el){
+var divEntryBarExtend=function(el){
+  //var cssBut={width:'initial','font-weight':'bold', padding:'0.2em', height:"auto", 'min-height':'1.8rem'};
+  var butLogin=createElement('button').css({flex:'0 0 auto'}).myText('Login').on('click', function(){loginReturn2=loginReturnList; loginPop.openFunc();});
+  el.css({ display:"flex", "justify-content":"center", 'align-items':'center'}); //, 'border-top':'solid 1px', "justify-content":"space-evenly"
+  el.myAppend(butLogin);
+  return el;
+}
+
+
+var divLoginInfoExtend=function(el){
   el.setStat=function(){
     var boShow=0,arrKind=[];
     var boShow=isSetObject(userInfoFrIP);
-    if(boShow){
-      spanName.myText(userInfoFrIP.nameIP);
-      //spanKind.myText('('+arrKind.join(', ')+')');
-      //el.css({visibility:''});
-      el.show();
-    }else {
-      //el.css({visibility:'hidden'});
-      el.hide();
-    } 
+    if(boShow){ spanName.myText(userInfoFrIP.nameIP); }
+    el.toggle(boShow);
   }
-  var spanName=createElement('span'), spanKind=createElement('span'); 
-  var logoutButt=createElement('button').myText(langHtml.loginInfo.logoutButt).css({'float':'right','font-size':'90%'});
+  var spanName=createElement('span'), spanKind=createElement('span').css({'margin-left':'.4em', 'margin-right':'0.4em'});
+  var logoutButt=createElement('button').myText(langHtml.divLoginInfo.logoutButt).css({'margin-left':'auto'});//.css({'float':'right','font-size':'90%'});
   logoutButt.on('click', function(){ 
     userInfoFrIP={}; 
     var vec=[['logout']];   majax(oAJAX,vec); 
     return false;
   });
   
-  el.myAppend(spanName,' ',spanKind,' ',logoutButt);
+  el.myAppend(spanName,spanKind,logoutButt).css({display:'flex', 'justify-content':'space-between', 'align-items':'center', 'font-size':'12px'});
   el.hide();
+  //el.css({visibility:'hidden'});
   return el;
 }
 
@@ -587,7 +618,7 @@ var linkListPopExtend=function(el){
       tbody.append(tr);
     }
     //table.toggle(Boolean(tab.length));
-    toggleSpecialistButts(isSetObject(userInfoFrIP));
+    loginInfoToggleStuff();
     //var Td=tbody.querySelectorAll('td:nth-child(1)'); Td.forEach(ele=>ele.css({'padding':'0 0.4em'}));
     
     spanLinkList.myText(tab.length);
@@ -900,7 +931,7 @@ var majax=function(trash, vecIn){  // Each argument of vecIn is an array: [serve
     var dataFetched=this.response;
     var data; try{ data=JSON.parse(this.response); }catch(e){ setMess(e);  return; }
     
-    var dataArr=data.dataArr;  // Each argument of dataArr is an array, either [argument] or [altFuncArg,altFunc]
+    var dataArr=data.dataArr||[];  // Each argument of dataArr is an array, either [argument] or [altFuncArg,altFunc]
     delete data.dataArr;
     beRet(data);
     for(var i=0;i<dataArr.length;i++){
@@ -931,8 +962,7 @@ app.GRet=function(data){
   tmp=data.userInfoFrIP; if(typeof tmp!="undefined") {userInfoFrIP=tmp;}
   tmp=data.userInfoFrDBUpd; if(typeof tmp!="undefined") {  for(var key in tmp){ userInfoFrDB[key]=tmp[key]; }   }
   
-  loginInfo.setStat(); 
-  toggleSpecialistButts(isSetObject(userInfoFrIP)); 
+  loginInfoToggleStuff(); 
   
   resetMess(10);
 }
@@ -954,9 +984,11 @@ window.boFF = uaLC.indexOf("firefox") > -1;
 var versionIE=detectIE();
 window.boIE=versionIE>0; if(boIE) browser.brand='msie';
 
-window.boChrome= /chrome/i.test(uaLC);
-window.boIOS= /iPhone|iPad|iPod/i.test(uaLC);
-window.boEpiphany=/epiphany/.test(uaLC);    if(boEpiphany && !boAndroid) boTouch=false;  // Ugly workaround
+
+app.boChrome= /chrome/.test(uaLC);
+app.boIOS= /iphone|ipad|ipod/.test(uaLC);
+app.boEpiphany=/epiphany/.test(uaLC);    if(boEpiphany && !boAndroid) boTouch=false;  // Ugly workaround
+app.boEdge= /edge/.test(uaLC);
 
 window.boOpera=RegExp('OPR\\/').test(ua); if(boOpera) boChrome=false; //alert(ua);
 
@@ -1085,19 +1117,30 @@ var tmp=createColJIndexNamesObj(listCol.KeyCol); extend(listCol,tmp); extend(win
 listCol.sel=createChildInd(listCol.backSel);   
 listCol.vis=createChildInd(listCol.backVis);   
 
+var maxWidth='800px';
+
+var colButtAllOn='#9f9', colButtOn='#0f0', colButtOff='#ddd', colFiltOn='#bfb', colFiltOff='#ddd', colFontOn='#000', colFontOff='#777', colActive='#65c1ff', colStapleOn='#f70', colStapleOff='#bbb';
 var colMenuBOn='#616161', colMenuBOff='#aaa';
 
 
 
-var imgBusy=createElement('img').prop({src:uBusy});
-var spanMessageText=spanMessageTextCreate();  window.setMess=spanMessageText.setMess;  window.resetMess=spanMessageText.resetMess;  window.appendMess=spanMessageText.appendMess;  elBody.append(spanMessageText)
-spanMessageText.css({font:'courier'});
+var imgBusy=createElement('img').prop({src:uBusy, alt:"busy"});
+//var spanMessageText=spanMessageTextCreate();  window.setMess=spanMessageText.setMess;  window.resetMess=spanMessageText.resetMess;  window.appendMess=spanMessageText.appendMess;  elBody.append(spanMessageText)
+//spanMessageText.css({font:'courier'});
 
-var busyLarge=createElement('img').prop({src:uBusyLarge}).css({position:'fixed',top:'50%',left:'50%','margin-top':'-42px','margin-left':'-42px','z-index':'1000',border:'black solid 1px'}).hide();
+var divMessageText=divMessageTextCreate();  copySome(window, divMessageText, ['setMess', 'resetMess', 'appendMess']);
+//divMessageText.css({font:'courier'});
+var divMessageTextWInner=createElement('div').myAppend(divMessageText).css({margin:'0em auto', width:'100%', 'max-width':maxWidth, 'text-align':'center', position:'relative'});
+var divMessageTextW=createElement('div').myAppend(divMessageTextWInner).css({width:'100%', position:'fixed', bottom:'0px', left:'0px', 'z-index':'10'});
+elBody.append(divMessageTextW);
+
+var busyLarge=createElement('img').prop({src:uBusyLarge, alt:"busy"}).css({position:'fixed',top:'50%',left:'50%','margin-top':'-42px','margin-left':'-42px','z-index':'1000',border:'black solid 1px'}).hide();
 elBody.append(busyLarge);
 
-var imgHelp=createElement('img').attr({src:uHelpFile}).css({'vertical-align':'-0.4em'});
-
+//var imgHelp=createElement('img').prop({src:uHelpFile, alt:"help"}).css({'vertical-align':'-0.4em'});
+var hovHelpMy=createElement('span').myText('❓').addClass('btn-round', 'helpButtonGradient').css({'margin-left':'0.6em', 'text-shadow':'0 0 0 black', 'font-size':'1rem'});
+if(boIOS | boEdge) {hovHelpMy.css({color:'transparent', 'text-shadow':'0 0 0 #5780a8'});}
+var imgHelp=hovHelpMy;
 
 var arrDayName=['Su','M','Tu','W','Th','F','Sa'];
 var arrMonthName=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -1113,10 +1156,6 @@ var oAJAX={};
 
 
 
-var maxWidth='800px';
-
-var colButtAllOn='#9f9', colButtOn='#0f0', colButtOff='#ddd', colFiltOn='#bfb', colFiltOff='#ddd', colFontOn='#000', colFontOff='#777', colActive='#65c1ff', colStapleOn='#f70', colStapleOff='#bbb';
-
 
 var cssDeleteButtonMouseOver={color:'white', 'text-shadow':'-2px 0 red, 2px 0 red, 0 -2px red, 0 2px red, -1px -1px red, 1px 1px red, -1px 1px red, 1px -1px red'};
 var cssDeleteButtonMouseOut={color:'grey', 'text-shadow':''};
@@ -1126,16 +1165,26 @@ var cssDeleteButtonMouseOut={color:'grey', 'text-shadow':''};
 elBody.css({visibility:'visible',background:'#fff'});
 elBody.css({display:'flex','flex-direction':'column'});
 
-var loginInfo=loginInfoExtend(createElement('div'));  loginInfo.css({padding:'0em 0em 0em 0em','font-size':'75%'});
-  
-var H1=elBody.querySelector('h1:nth-of-type(1)');
-H1.remove();
+
+
+var divEntryBar=elBody.querySelector('#divEntryBar');
+divEntryBarExtend(divEntryBar); divEntryBar.css({flex:'0 0 auto', padding:'0em', visibility:'hidden'}); //, 
+//var divLoginInfo=divLoginInfoExtend(createElement('div')).css({padding:'0em 0em 0em 0em','font-size':'75%'});
+var divLoginInfo=divLoginInfoExtend(createElement('div')).addClass('mainDivR').css({flex:'0 0 auto', 'min-height':'2rem'}).hide();  //, 'line-height':'1.6em'
+divEntryBar.after(divLoginInfo);
+
+var divH1=elBody.querySelector('#divH1');
+var H1=divH1.querySelector('h1');
+elBody.querySelector('noscript').detach();
+
 const urlParams = new URLSearchParams(window.location.search), myParam = urlParams.get('uuid');
 var strTitleHelp; if(myParam) strTitleHelp='Mark when you are busy and click save'; else strTitleHelp='Mark when you are busy, click save, and email the returned link to the other meeting participants.';
 
-var imgH=imgHelp.cloneNode().css({margin:'0 0 0 0.5em', 'vertical-align':'-0.3em'}),  bub=createElement('div').myHtml(strTitleHelp);     popupHover(imgH,bub); 
-var divH1=createElement('div').myAppendHtml(H1.textContent, imgH).css({flex:'0 0 auto', 'letter-spacing':'0.15em', 'text-shadow':'-1px 0 grey, 1px 0 grey, 0 -1px grey, 0 1px grey, -1px -1px grey, 1px 1px grey, -1px 1px grey, 1px -1px grey'});
-divH1.css({'text-align':'center',color:'black','font-size':'130%','font-weight':'bold', padding:'0.3em 0.2em',margin:'0.2em auto 0.2em auto'}); //,background:'#ff0',border:'solid 1px'
+var imgH=imgHelp.cloneNode(1).css({margin:'0 0 0 0.5em'}),  bub=createElement('div').myHtml(strTitleHelp);     popupHover(imgH,bub);   //, 'vertical-align':'-0.3em'
+divH1.myAppend(imgH);
+
+divH1.css({flex:'0 0 auto'});
+
 
 var inpTitle=createElement('input').prop({type:'text', placeholder:"Title"}).css({'font-weight':'bold','font-size':'130%', 'text-align':'center', 'max-width':'100%'});
 var divTitle=createElement('div').css({'text-align':'center', margin:'0.3em'}).myAppend(inpTitle); //,'margin-bottom':'0.5em','border-bottom':'1px solid', ,'padding':'0.4em'
@@ -1158,12 +1207,11 @@ var butLinkList=createElement('button').myAppend('Links (', spanLinkList, ')').p
 var butSave=createElement('button').myText('Save').on('click', function(){sch.save();}).css({'margin-right':'0.5em', flex:'0 0 auto'});
 var spanRed=createElement('span').css({"background":"#f00",border:'black solid 1px', height:'1em', width:'1em', display:'inline-block', 'vertical-align':'bottom'});
 var spanBusy=createElement('span').css({'float':"right"}).myAppend(spanRed,' = Busy'); 
-var butLogin=createElement('button').css({flex:'0 0 auto'}).myText('Login').on('click', function(){loginReturn2=loginReturnList; loginPop.openFunc();});
 
 var strTmp='https://emagnusandersson.com/syncAMeeting'; 
 var aLink=createElement('a').attr({href:strTmp}).myText('More info');
 var divLink=createElement('a').myAppend(aLink).css({'font-size':'100%','font-weight':'bold', flex:'1 1 auto'});
-var divFoot=createElement('div').myAppend(butSetting, butSave, butLinkList, butLogin, divLink, spanBusy);  
+var divFoot=createElement('div').myAppend(butSetting, butSave, butLinkList, divLink, spanBusy);  
 divFoot.css({bottom:'0px', display:'flex', 'flex-direction':'row', width:'100%', padding:'1em', 'text-align':'center', 'border-top':'1px solid', background:'white', flex:'0 0 auto'}); 
 
 
@@ -1225,29 +1273,26 @@ if(boIOS) extend(tmpCss, {'-webkit-transform':'translate3d(0,0,0)'});
 //width:'0px', visibility:'hidden'  , transition:'transform 0.5s, visibility 0.5s'
 
 
-var MainDiv=[loginInfo, divH1, divTitle, schW, divFoot]; //, saveDiv, scheduleList   , divRangeL, divRangeSt  , divRangeW
-elBody.append(...MainDiv);
+var MainDiv=[divEntryBar, divLoginInfo, divH1, divTitle, schW, divFoot]; //, saveDiv, scheduleList   , divRangeL, divRangeSt  , divRangeW
+
 
 
 if(boSmall) { divH1.hide(); divTitle.css({'font-size':'80%'}); }
 MainDiv.forEach(ele=>ele.css({'text-align':'left', background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'}));
+[divH1, divTitle, divFoot].forEach(ele=>ele.css({'text-align':'center'}));
+schW.css({'max-width':""})
 
 var ViewPop=[loginPop, linkCreatedPop, deleteScheduleConfirmPop];
+ViewPop.forEach(ele=>ele.hide());
 var ViewSide=[settingPop, linkListPop];
-ViewSide.forEach(ele=>ele.css({'text-align':'left', background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'}));
-elBody.append(...ViewPop, ...ViewSide);
-[...ViewPop].forEach(ele=>ele.hide());
-//[...ViewPop, ...ViewSide].forEach(ele=>ele.hide());
-//settingPop.show();
-//setTimeout(function(){settingPop.divContW.css({visibility:'hidden'})},1);
-//setTimeout(function(){settingPop.divContW.css({transform:'translateX(-200%)'})},1);
-//settingPop.divContW.css({transform:'translateX(-200%)'});
-ViewSide.forEach(ele=>{ele.divBlanket.hide(); ele.divContW.css({transform:'translateX(-200%)', visibility:'hidden'})});
+ViewSide.forEach(ele=>{
+  ele.css({'text-align':'left', background:'#fff','max-width':maxWidth,'margin-left':'auto','margin-right':'auto', 'box-sizing':'border-box', width:'100%'});
+  ele.divBlanket.hide(); ele.divContW.css({transform:'translateX(-200%)', visibility:'hidden'})
+});
 
-[divH1, divTitle, divFoot].forEach(ele=>ele.css({'text-align':'center'})); //   , divRangeW
-//divBread.css({'text-align':'center'}); //,background:'lightgrey'
+elBody.append(...MainDiv, ...ViewPop, ...ViewSide);
 
-//sch.css({'width':'auto','text-align':''});
+
 
 history.StateMy[history.state.ind]={view:schW};
 
@@ -1286,11 +1331,7 @@ if(uuid!==null) vec.push(['getSchedule',{uuid:uuid}, sch.getScheduleRet]);
 majax(oAJAX,vec);
 setMess('Fetching data ',0,true);
 
-toggleSpecialistButts(0);
-
-
-
-
+//loginInfoToggleStuff();
 
 }
 

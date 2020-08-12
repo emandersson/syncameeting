@@ -8,8 +8,7 @@ p {
 
 
 
-body {font-family:arial, verdana, helvetica;font-size:100%; overscroll-behavior: contain;}
-
+body { overscroll-behavior: contain;}
 body {-webkit-text-size-adjust: 100%; }
 
 table {border-collapse:collapse;}
@@ -53,20 +52,18 @@ background:#ddd;
     justify-content:space-between
 }
 
-span.message{
+
+.message{
   border:black 1px solid;
-  position:fixed;
-  /*_position:absolute;*/
+  position:absolute;
   bottom:0%;
   right:0%;
   margin:0;
   padding:1px;
-  /*#background:lightgray;*/
   background-color:#F7F700;
   font-size: 0.8em;
   z-index: 10000;
- }
- 
+}
 
 .popupHover {
   position:absolute;
@@ -116,4 +113,22 @@ span.message{
 
 
 
+.btn-round {
+  text-align: center;
+  width: 1.6em;
+  height: 1.6em;
+  border-radius: 100%;
+  border: 1px solid;
+  display: inline-block;
+  text-decoration: none;
+  line-height: 1.7em;
+  cursor: default
+}
+.helpButtonGradient {
+  background-image: radial-gradient(#daeaff, #8cbdfd, #0064ea);;
+  color: #5780a8;
+  border: 0;
+  font-weight: bold;
+  font-size: 90%;
+}
 

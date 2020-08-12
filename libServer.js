@@ -59,7 +59,7 @@ var createSiteSpecificClientJS=function(siteName) {
   //copySome(objOut,site,['wwwSite']);
   objOut.site=siteSimplified;
 
-  Str.push(`var tmp=`+JSON.stringify(objOut)+`;\n extend(window, tmp);`);
+  Str.push(`var tmp=`+JSON.stringify(objOut)+`;\n Object.assign(window, tmp);`);
 
   Str.push("}");
 

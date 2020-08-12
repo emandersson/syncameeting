@@ -19,7 +19,7 @@ var getBrowser=function() {
     var brand=match[ 1 ] || "";
     var version=match[ 2 ] || "0";
     
-    return {brand:brand,version:version};
+    return {brand,version};
 };
 var detectIE=function() {
     var ua = window.navigator.userAgent;
@@ -48,14 +48,15 @@ var detectIE=function() {
 }
 
   
-var extend=function(out) {
-  out=out||{};
-  for(var i=1; i<arguments.length; i++) {
-    if(!arguments[i]) continue;
-    for(var key in arguments[i]) {    if(arguments[i].hasOwnProperty(key)) out[key]=arguments[i][key];     }
-  }
-  return out;
-};
+// var extend=function(out) {
+//   out=out||{};
+//   for(var i=1; i<arguments.length; i++) {
+//     if(!arguments[i]) continue;
+//     for(var key in arguments[i]) {    if(arguments[i].hasOwnProperty(key)) out[key]=arguments[i][key];     }
+//   }
+//   return out;
+// };
+var extend=Object.assign;
 
 /*******************************************************************************************************************
  * DOM handling (non-jQuery)

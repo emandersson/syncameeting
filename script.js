@@ -56,6 +56,9 @@ helpTextExit=function(){
   process.exit(0);
 }
 
+var StrUnknown=AMinusB(Object.keys(argv),['_', 'h', 'help', 'p', 'port', 'sql']);
+var StrUnknown=[].concat(StrUnknown, argv._);
+if(StrUnknown.length){ console.log('Unknown arguments: '+StrUnknown.join(', ')); helpTextExit(); return;}
 
     // Set up redisClient
 var urlRedis;
@@ -207,8 +210,12 @@ var flow=( function*(){
       res.setHeader("Set-Cookie", ["sessionIDNormal="+sessionID+strCookiePropNormal, "sessionIDLax="+sessionID+strCookiePropLax, "sessionIDStrict="+sessionID+strCookiePropStrict]);
        
         // Check if to many requests comes in a short time (DDOS)
-      if(intCount>intDDOSMax) {res.outCode(429,"Too Many Requests ("+intCount+"), wait "+tDDOSBan+"s\n"); return; }
-      
+      if(intCount>intDDOSMax) {
+        var strMess="Too Many Requests ("+intCount+"), wait "+tDDOSBan+"s\n";
+        if(pathName=='/'+leafBE){ var reqBE=new ReqBE({req, res}); reqBE.mesEO(strMess,429); }
+        else res.outCode(429,strMess);
+        return;
+      }
       
         // Refresh / create  redisVarSessionCache
       if(req.boCookieNormalOK){
@@ -229,11 +236,9 @@ var flow=( function*(){
       var strScheme='http'+(site.boTLS?'s':''),   strSchemeLong=strScheme+'://';
       var uDomain=strSchemeLong+domainName;
       var uSite=strSchemeLong+wwwSite;
-      req.site=site;  req.sessionID=sessionID; req.qs=qs; req.objQS=objQS; req.siteName=siteName;  req.strSchemeLong=strSchemeLong;  req.wwwSite=wwwSite;  req.uSite=uSite;  req.pathName=pathName;   
-      //var rootDomainT=RootDomain[site.strRootDomain];  req.app_id=rootDomainT.fb.id;   req.app_secret=rootDomainT.fb.secret;
-      req.rootDomain=RootDomain[site.strRootDomain];
+      extend(req, {site, sessionID, qs, objQS, siteName, strSchemeLong, wwwSite, uSite, pathName, rootDomain:RootDomain[site.strRootDomain]});
 
-      var objReqRes={req:req, res:res};
+      var objReqRes={req, res};
       objReqRes.myMySql=new MyMySql(mysqlPool);
       if(levelMaintenance){res.outCode(503, "Down for maintenance, try again in a little while."); return;}
       if(pathName=='/') { yield* reqIndex.call(objReqRes);   }
@@ -242,7 +247,7 @@ var flow=( function*(){
       else if(regexpLib.test(pathName) || regexpLooseJS.test(pathName) || pathName=='/conversion.html'){   yield* reqStatic.call(objReqRes);   }
       else if(pathName=='/'+leafLogin){   
         var state=randomHash(); //CSRF protection
-        var objT={state:state, IP:objQS.IP, fun:objQS.fun, caller:objQS.caller||"index"};
+        var objT={state, IP:objQS.IP, fun:objQS.fun, caller:objQS.caller||"index"};
         //var redisVar=req.sessionID+'_Login', tmp=wrapRedisSendCommand('set',[redisVar,JSON.stringify(objT)]);     var tmp=wrapRedisSendCommand('expire',[redisVar,300]);
         yield *setRedis(req.flow, req.sessionID+'_Login', objT, 300);
         var uLoginBack=uDomain+"/"+leafLoginBack;
