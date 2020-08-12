@@ -30,7 +30,7 @@ var mesEOMakeJSON=function(glue){ return function(err){
  * reqIndex
  ******************************************************************************/
 app.reqIndex=function*() {
-  var req=this.req, res=this.res; 
+  var {req, res}=this; 
   var flow=req.flow;
   var siteName=req.siteName, site=req.site, uSite=req.uSite, wwwSite=req.wwwSite;
   var objQS=req.objQS;
@@ -48,27 +48,35 @@ app.reqIndex=function*() {
  
   var Str=[];
   Str.push(`<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:og="http://ogp.me/ns#"
-      xmlns:fb="http://www.facebook.com/2008/fbml">`);
+<html lang="en"
+xmlns="http://www.w3.org/1999/xhtml"
+xmlns:og="http://ogp.me/ns#"
+xmlns:fb="http://www.facebook.com/2008/fbml">`);
   Str.push('<head>\n<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>');
 
   if(uuid!=null)  Str.push('<meta name="robots" content="noindex">');
 
 
   var ua=req.headers['user-agent']||''; ua=ua.toLowerCase();
-  var boMSIE=RegExp('msie').test(ua), boAndroid=RegExp('android').test(ua), boFireFox=RegExp('firefox').test(ua), boIOS= RegExp('iPhone|iPad|iPod','i').test(ua);
+  var boMSIE=RegExp('msie').test(ua);
+  var boAndroid=RegExp('android').test(ua);
+  var boFireFox=RegExp('firefox').test(ua);
+  //var boIOS= RegExp('iPhone|iPad|iPod','i').test(ua);
+  var boIOS= RegExp('iphone','i').test(ua);
 
-  var tmpIcon=wwwIcon16; if('wwwIcon16' in site) tmpIcon=site.wwwIcon16;  var uIcon16=req.strSchemeLong+tmpIcon;
-  var tmpIcon=wwwIcon114; if('wwwIcon114' in site) tmpIcon=site.wwwIcon114;  var uIcon114=req.strSchemeLong+tmpIcon;
-  var tmpIcon=wwwIcon200; if('wwwIcon200' in site) tmpIcon=site.wwwIcon200;  var uIcon200=req.strSchemeLong+tmpIcon;
-  Str.push('<link rel="icon" type="image/png" href="'+uIcon16+'" />');
-  Str.push('<link rel="apple-touch-icon-precomposed" href="'+uIcon114+'"/>');
+  
+  
+
+  var srcIcon16=site.SrcIcon[IntSizeIconFlip[16]];
+  var srcIcon114=site.SrcIcon[IntSizeIconFlip[114]];
+  Str.push('<link rel="icon" type="image/png" href="'+srcIcon16+'" />');
+  Str.push('<link rel="apple-touch-icon" href="'+srcIcon114+'"/>');
 
 
   var strTmp='';  //if(boAndroid && boFireFox) {  strTmp=", width=device-width";}
   //var strTmp=", width=device-width, user-scalable=no";
-  Str.push("<meta name='viewport' id='viewportMy' content='initial-scale=1"+strTmp+"'/>");
+  Str.push("<meta name='viewport' id='viewportMy' content='initial-scale=1'/>");
+  Str.push('<meta name="theme-color" content="#fff"/>');
 
 
   var strTitle='Free meeting synchronizer';
@@ -86,6 +94,7 @@ app.reqIndex=function*() {
   <link rel="canonical" href="`+uSite+`"/>`);
 
   
+  var uIcon200=uSite+site.SrcIcon[IntSizeIconFlip[200]];
   if(!boDbg) {
     Str.push(`
 <meta property="og:title" content="`+wwwSite+`"/>
@@ -101,6 +110,14 @@ app.reqIndex=function*() {
   }
 
   
+  Str.push(`<script>var app=window;</script>`);
+  Str.push(`<style>
+:root { --maxWidth:800px; height:100%}
+body {margin:0; height:100%; display:flow-root; font-family:arial, verdana, helvetica;}
+.mainDivR { box-sizing:border-box; margin: 0em auto; width:100%; display:flex; max-width:var(--maxWidth) }
+h1 { font-size:1.6rem; font-weight:bold; letter-spacing:0.15em; text-shadow:-1px 0 grey, 1px 0 grey, 0 -1px grey, 0 1px grey, -1px -1px grey, 1px 1px grey, -1px 1px grey, 1px -1px grey; display:inline-block  }
+</style>`);
+
   var tmp=`
 <script>
   window.fbAsyncInit = function() {
@@ -110,9 +127,7 @@ app.reqIndex=function*() {
       xfbml      : true,
       version    : 'v4.0'
     });
-      
     FB.AppEvents.logPageView();   
-      
   };
 
   (function(d, s, id){
@@ -126,28 +141,28 @@ app.reqIndex=function*() {
   Str.push(tmp);
 
 
-
-
   var uCommon=''; if(wwwCommon) uCommon=req.strSchemeLong+wwwCommon;
-  var uJQuery='https://code.jquery.com/jquery-3.3.1.min.js';    if(boDbg) uJQuery=uCommon+'/'+flFoundOnTheInternetFolder+"/jquery-3.3.1.min.js";
-  //Str.push('<script src="'+uJQuery+'" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT" crossorigin="anonymous"></script>');
- 
+
     // If boDbg then set vTmp=0 so that the url is the same, this way the debugger can reopen the file between changes
 
     // Use normal vTmp on iOS (since I don't have any method of disabling cache on iOS devices (nor any debugging interface))
   var boDbgT=boDbg; if(boIOS) boDbgT=0;
+  
+  
+  var keyTmp=siteName+'/'+leafManifest, vTmp=boDbgT?0:CacheUri[keyTmp].eTag;     Str.push(`<link rel="manifest" href="`+uSite+`/`+leafManifest+`?v=`+vTmp+`"/>`);
+  
     // Include stylesheets
-  var pathTmp='/stylesheets/resetMeyer.css', vTmp=CacheUri[pathTmp].eTag; if(boDbgT) vTmp=0;    Str.push('<link rel="stylesheet" href="'+uCommon+pathTmp+'?v='+vTmp+'" type="text/css">');
-  var pathTmp='/stylesheets/style.css', vTmp=CacheUri[pathTmp].eTag; if(boDbgT) vTmp=0;    Str.push('<link rel="stylesheet" href="'+uCommon+pathTmp+'?v='+vTmp+'" type="text/css">');
+  //var pathTmp='/stylesheets/resetMeyer.css', vTmp=boDbgT?0:CacheUri[pathTmp].eTag;    Str.push('<link rel="stylesheet" href="'+uCommon+pathTmp+'?v='+vTmp+'" type="text/css">');
+  var pathTmp='/stylesheets/style.css', vTmp=boDbgT?0:CacheUri[pathTmp].eTag;    Str.push('<link rel="stylesheet" href="'+uCommon+pathTmp+'?v='+vTmp+'" type="text/css">');
 
     // Include site specific JS-files
   var uSite=req.strSchemeLong+wwwSite;
-  var keyCache=siteName+'/'+leafSiteSpecific, vTmp=CacheUri[keyCache].eTag; if(boDbgT) vTmp=0;  Str.push('<script src="'+uSite+'/'+leafSiteSpecific+'?v='+vTmp+'"></script>');
+  var keyCache=siteName+'/'+leafSiteSpecific, vTmp=boDbgT?0:CacheUri[keyCache].eTag;  Str.push('<script src="'+uSite+'/'+leafSiteSpecific+'?v='+vTmp+'" async></script>');
 
     // Include JS-files
   var StrTmp=['lib.js', 'libClient.js', 'client.js', 'lang/en.js'];
   for(var i=0;i<StrTmp.length;i++){
-    var pathTmp='/'+StrTmp[i], vTmp=CacheUri[pathTmp].eTag; if(boDbgT) vTmp=0;    Str.push('<script src="'+uCommon+pathTmp+'?v='+vTmp+'"></script>');
+    var pathTmp='/'+StrTmp[i], vTmp=boDbgT?0:CacheUri[pathTmp].eTag;    Str.push('<script src="'+uCommon+pathTmp+'?v='+vTmp+'" async></script>');
   }
 
 
@@ -168,18 +183,19 @@ app.reqIndex=function*() {
   Str.push(strTracker);
 
   Str.push("</head>");
-  Str.push('<body style="visibility:hidden">');
+  Str.push(`<body>
+<title>`+strTitle+`</title>
+<div id=divEntryBar class="mainDivR" style="align-items:center; min-height:2rem; flex:0 0 auto"></div>
+<div id=divH1 class="mainDivR" style="border:solid 1px; color:black;  padding:0em; margin:0 auto 0; flex:0 0 auto; align-items:center; justify-content:center"><h1>`+strH1+`</h1></div>
+<noscript><div style="text-align:center">You don't have javascript enabled, so this app won't work.</div></noscript>`);
 
 
-  Str.push("<title>"+strTitle+"</title>\n<h1>"+strH1+"</h1>\n"+strSummary);
-
-  Str.push(`\n<script type="text/javascript" language="JavaScript" charset="UTF-8">
-
+  Str.push(`<script type="text/javascript" language="JavaScript" charset="UTF-8">
 boTLS=`+JSON.stringify(site.boTLS)+`;
 uuid=`+JSON.stringify(uuid)+`;
-  </script>
-  </body>
-  </html>`);
+</script>
+</body>
+</html>`);
 
 
   var str=Str.join('\n'); 
@@ -195,10 +211,8 @@ uuid=`+JSON.stringify(uuid)+`;
  * reqStatic
  ******************************************************************************/
 app.reqStatic=function*() {
-  var req=this.req, res=this.res;
-  this.Str=[];
-  var siteName=req.siteName;
-  var pathName=req.pathName;
+  var {req, res}=this;
+  var {flow, siteName, pathName}=req;
 
   //var RegAllowedOriginOfStaticFile=[RegExp("^https\:\/\/(closeby\.market|gavott\.com)")];
   //var RegAllowedOriginOfStaticFile=[RegExp("^http\:\/\/(localhost|192\.168\.0)")];
@@ -207,10 +221,10 @@ app.reqStatic=function*() {
   if(req.method=='OPTIONS'){ res.end(); return ;}
 
   var eTagIn=getETag(req.headers);
-  var keyCache=pathName; if(pathName==='/'+leafSiteSpecific) keyCache=siteName+keyCache;
+  var keyCache=pathName; if(pathName==='/'+leafSiteSpecific || pathName==='/'+leafManifest) keyCache=siteName+keyCache;
   if(!(keyCache in CacheUri)){
     var filename=pathName.substr(1);
-    var [err]=yield* readFileToCache(req.flow, filename);
+    var [err]=yield* readFileToCache(flow, filename);
     if(err) {
       if(err.code=='ENOENT') {res.out404(); return;}
       if('host' in req.headers) console.error('Faulty request from'+req.headers.host);
@@ -311,7 +325,7 @@ ReqLoginBack.prototype.go=function*(){
       this.sessionCache.userInfoFrDB=extend({},specialistDefault);    
     }
   }
-  this.sessionCache.userInfoFrIP={IP:IP,idIP:idIP,nameIP:nameIP};
+  this.sessionCache.userInfoFrIP={IP,idIP,nameIP};
   
   //setSessionMain.call(this);
   yield *setRedis(flow, req.sessionID+'_Cache', this.sessionCache, maxUnactivity);
@@ -356,7 +370,7 @@ ReqLoginBack.prototype.writeHtml=function(err, results){
   
   var Str=this.Str;
   Str.push(`
-<html><head><meta name='robots' content='noindex'>
+<html lang="en"><head><meta name='robots' content='noindex'>
 <link rel='canonical' href='`+uSite+`'/>
 </head>
 <body>
@@ -651,7 +665,7 @@ app.ReqSql.prototype.createZip=function(objSetupSql){
   res.end(outdata,'binary');
 }
 ReqSql.prototype.toBrowser=function(objSetupSql){
-  var req=this.req, res=this.res, StrType=this.StrType;
+  var {req, res}=this;
   var Match=RegExp("^(drop)?(.*?)(All)?$").exec(req.pathNameWOPrefix), boDropOnly=Match[1]=='drop', strMeth=Match[2].toLowerCase(), boAll=Match[3]=='All', SiteNameT=boAll?SiteName:[req.siteName];
   var StrValidMeth=['table', 'fun', 'truncate',  'dummy', 'dummies'];
   //var objTmp=Object.getPrototypeOf(objSetupSql);

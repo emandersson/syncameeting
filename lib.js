@@ -41,8 +41,6 @@ MyAsync.prototype.trunkNoFin=function(){}
 
 app.getColor = function(val, range) {  var s=100, l=50, a=1,    h = 240-Math.round((240 / range) * val);      return "hsla("+h+","+s+"%,"+l+"%,"+a+")";    };
 
-app.htmlDecode=function(input){ var e = document.createElement('div');    e.innerHTML = input;     return e.childNodes[0].nodeValue;  }
-
 
 
 //
@@ -63,6 +61,12 @@ app.pad2=function(n) {return (n<10?'0':'')+n;}
 // Array
 //
 
+app.intersectionAB=function(A,B){var Rem=[]; for(var i=A.length-1;i>=0;i--){var a=A[i]; if(B.indexOf(a)==-1) A.splice(i,1); else Rem.push(a);} return Rem.reverse();}  // Changes A, returns the remainder
+app.AMinusB=function(A,B){var ANew=[]; for(var i=0;i<A.length;i++){var a=A[i]; if(B.indexOf(a)==-1) ANew.push(a);} return ANew;}  // Does not change A, returns ANew
+app.removeBFrA=function(A,B){var Rem=[]; for(var i=A.length-1;i>=0;i--){var a=A[i]; if(B.indexOf(a)==-1) Rem.push(a); else A.splice(i,1);} return Rem.reverse();}  // Changes A, returns the remainder
+app.myIntersect=function(A,B){var arrY=[],arrN=[]; for(var i=0; i<A.length; i++){var a=A[i]; if(B.indexOf(a)==-1) arrN.push(a); else arrY.push(a);} return [arrY,arrN];}  
+app.intersectBool=function(A,B){for(var i=0; i<A.length; i++){if(B.indexOf(A[i])!=-1) return true;} return false;}  
+app.isAWithinB=function(A,B){ for(var i=0; i<A.length; i++){if(B.indexOf(A[i])==-1) return false;} return true;}  
 
 app.arr_max=function(arr){return Math.max.apply(null, arr);}
 app.arr_min=function(arr){return Math.min.apply(null, arr);}
@@ -236,7 +240,15 @@ app.UTC2ReadableTmp=function(utcTime,curTime,boUseDiff, dirDiffSign){
 
 app.randomInt=function(min, max){    return min + Math.floor(Math.random() * (max - min + 1));  }
 app.randomHash=function(){ return Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2);}
-
+app.genRandomString=function(len) {
+  //var characters = 'abcdefghijklmnopqrstuvwxyz';
+  var characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  var str ='';    
+  for(var p=0; p<len; p++) {
+    str+=characters[randomInt(0, characters.length-1)];
+  }
+  return str;
+}
 
 //
 // Math

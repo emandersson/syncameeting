@@ -119,7 +119,6 @@ else{
 
   // If wwwCommon is not set then set it to the first "wwwSite" in "Site"
 if(!wwwCommon) {var keys=Object.keys(Site); wwwCommon=Site[keys[0]].wwwSite; }  
-wwwIcon16=wwwCommon+'/Site/Icon/iconRed16.png';   wwwIcon114=wwwCommon+'/Site/Icon/iconRed114.png';   wwwIcon200=wwwCommon+'/Site/Icon/iconRed200.png';
 
 
 

@@ -18,6 +18,7 @@ leafBE='be.json';
 leafSiteSpecific='siteSpecific.js'; 
 leafLogin="login.html";
 leafLoginBack="loginBack.html";
+leafManifest='manifest.json';
 
 
 
@@ -55,10 +56,12 @@ codeLen=8;
 version='2';
 
 
+IntSizeIcon=[16, 114, 192, 200, 512, 1024];
+IntSizeIconFlip=array_flip(IntSizeIcon);
 SiteExtend=function(){
   Site.getSite=function(wwwReq){
     for(var i=0;i<SiteName.length;i++){
-      var siteName=SiteName[i];   var tmp; if(tmp=Site[siteName].testWWW(wwwReq)) {return {siteName:siteName, wwwSite:tmp};  }
+      var siteName=SiteName[i];   var tmp; if(tmp=Site[siteName].testWWW(wwwReq)) {return {siteName, wwwSite:tmp};  }
     }
     return {siteName:null};
   }
@@ -78,6 +81,16 @@ SiteExtend=function(){
     site.testWWW=function(wwwReq){
       if(wwwReq.indexOf(this.wwwSite)==0) return this.wwwSite; else return false;
     };
+    
+    
+    site.SrcIcon=Array(IntSizeIcon.length);
+    site.icons=Array(IntSizeIcon.length);
+    var strType='png', wsIconProt=site.wsIconProt || wsIconDefaultProt;
+  
+    IntSizeIcon.forEach((size, ind)=>{
+      site.SrcIcon[ind]=wsIconProt.replace("<size>", size);
+      site.icons[ind]={ src:site.SrcIcon[ind], type: mime.getType(strType), sizes: size+"x"+size, purpose: "any maskable" };
+    });
   }
 /*
   Site.getName=function(domainName){

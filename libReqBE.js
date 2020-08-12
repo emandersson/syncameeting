@@ -12,7 +12,8 @@
 app.ReqBE=function(objReqRes){
   Object.assign(this, objReqRes);
   this.site=this.req.site
-  this.Str=[];  this.Out={GRet:{userInfoFrDBUpd:{}}, dataArr:[]};  this.GRet=this.Out.GRet; 
+  //this.Str=[];  this.Out={GRet:{userInfoFrDBUpd:{}}, dataArr:[]};  this.GRet=this.Out.GRet; 
+  this.Str=[];  this.dataArr=[];  this.GRet={userInfoFrDBUpd:{}}; 
 }
 
 
@@ -21,9 +22,10 @@ ReqBE.prototype.mesO=function(str){
   if(str) this.Str.push(str);
   this.GRet.strMessageText=this.Str.join(', ');
   this.GRet.userInfoFrIP=this.sessionCache.userInfoFrIP;
-  this.res.end(serialize(this.Out));	
+  var objOut=copySome({}, this, ["dataArr", "GRet"]);
+  this.res.end(serialize(objOut));	
 }
-ReqBE.prototype.mesEO=function(errIn){
+ReqBE.prototype.mesEO=function(errIn, statusCode=500){
   var GRet=this.GRet;
   var boString=typeof errIn=='string';
   var err=errIn; 
@@ -34,7 +36,8 @@ ReqBE.prototype.mesEO=function(errIn){
   GRet.userInfoFrIP=this.sessionCache.userInfoFrIP; 
 
   //this.res.writeHead(500, {"Content-Type": MimeType.txt}); 
-  this.res.end(serialize(this.Out));
+  var objOut=copySome({}, this, ["dataArr", "GRet"]);
+  this.res.end(serialize(objOut));
 }
 
 
@@ -280,7 +283,7 @@ ReqBE.prototype.go=function*(){
     else if(err){
       if(typeof err=='object' && err.name=='ErrorClient') this.mesO(err); else this.mesEO(err);     return;
     }
-    else this.Out.dataArr.push(result);
+    else this.dataArr.push(result);
   }
   this.mesO();
 

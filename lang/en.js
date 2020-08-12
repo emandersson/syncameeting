@@ -18,7 +18,7 @@ Home:'Home',
 more:'more',
 
   //login
-loginInfo:{
+divLoginInfo:{
 'user':'user',
 'customer':'customer',
 'seller':'seller',
